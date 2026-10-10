@@ -22,7 +22,9 @@ body{font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-
   background:rgba(20,44,33,.62);border:calc(var(--u)*.3) solid rgba(220,230,224,.2);border-radius:calc(var(--u)*6);
   box-shadow:0 calc(var(--u)*.8) calc(var(--u)*3.5) rgba(0,0,0,.22),inset 0 calc(var(--u)*.3) 0 rgba(247,245,240,.07)}
 .hsep{flex:none;width:calc(var(--u)*.3);height:calc(var(--u)*5.4);background:rgba(220,230,224,.22);margin:0 calc(var(--u)*2.6)}
-#quest{min-width:0;flex:0 1 auto}
+#quest{min-width:0;flex:0 1 auto;cursor:pointer}
+#quest.open{height:auto;min-height:calc(var(--u)*11);padding-top:calc(var(--u)*2);padding-bottom:calc(var(--u)*2);border-radius:calc(var(--u)*4)}
+#quest.open #hint{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
 #seals,#scrolls{display:flex;align-items:center;gap:calc(var(--u)*1.3);flex:none}
 .scr{width:calc(var(--u)*3);height:calc(var(--u)*5);border-radius:calc(var(--u)*.8);box-sizing:border-box;border:calc(var(--u)*.5) dashed rgba(220,230,224,.45)}
 .scr.full{border:calc(var(--u)*.5) solid var(--off);background:var(--pale)}
@@ -214,7 +216,7 @@ table.keys td:first-child{font-weight:700;color:var(--pine);white-space:nowrap}
   <canvas id="cv" width="384" height="216"></canvas>
   <div id="labels"></div>
   <div id="hud" class="hidden">
-    <div id="quest" class="hpill">
+    <div id="quest" class="hpill" title="Click to show or hide the full mission text">
       <div id="scrolls"><span class="scr" title="Inheritance scroll"></span><span class="scr" title="Phenotype scroll"></span><span class="scr" title="Repeat scroll"></span><span class="scr" title="Counselling scroll"></span></div>
       <span class="hsep"></span>
       <div id="seals" title="Seals left"><span class="seal full"></span><span class="seal full"></span><span class="seal full"></span></div>
@@ -230,6 +232,7 @@ table.keys td:first-child{font-weight:700;color:var(--pine);white-space:nowrap}
       </div>
       <button class="hbtn hidden" id="voiceBtn" tabindex="-1" title="Character voices on or off (V)">Voices on</button>
       <span class="hsep hidden" id="voiceSep"></span>
+      <button class="hbtn" id="fsBtn" tabindex="-1" title="Full screen on or off (F)">Full screen</button>
       <button class="hbtn" id="helpBtn" tabindex="-1" title="Help (H)">Help</button>
       <button class="hbtn" id="creditsBtn" tabindex="-1">Credits</button>
     </div>
@@ -264,6 +267,7 @@ table.keys td:first-child{font-weight:700;color:var(--pine);white-space:nowrap}
         <tr><td>M</td><td>Mute or unmute the music</td></tr>
         <tr><td>− / +</td><td>Music volume down or up (or use the slider at the top)</td></tr>
         <tr><td>V</td><td>Character voices on or off</td></tr>
+        <tr><td>F</td><td>Full screen on or off</td></tr>
         <tr><td>H</td><td>Show or hide this help</td></tr>
         <tr><td>C</td><td>Credits</td></tr>
         <tr><td>G</td><td>Show proximity radii and walk times from the start</td></tr>
@@ -327,7 +331,10 @@ const ROLES = {
   child:       { sprite: 'Villager',       portrait: 'Villager',       voice: 'Voice4',  pitch: 1.3 },
 };
 
-const W = 384, H = 216, RADIUS = 24, SPEED = 100, NPC_SPEED = 42;
+// View size in game pixels. 384 x 216 at 16:9; resize() widens or heightens it
+// (up to the world size) so the canvas fills screens of other shapes.
+let W = 384, H = 216;
+const RADIUS = 24, SPEED = 100, NPC_SPEED = 42;
 const WW = LAYOUT.world[0], WH = LAYOUT.world[1];
 const JUMP_T = 0.46, JUMP_H = 11;
 const cam = { x: 0, y: 0 };
@@ -1274,7 +1281,7 @@ function stepScroll(writing, after) {
     ...header('The scroll', writing ? 'The healer writes the diagnosis on the scroll' : 'The diagnosis on the scroll'),
     h('div', { class: 'body' },
       h('div', { class: 'scrollart' }, c, h('div', { class: 'result', style: 'flex:1;font-size:1.15em' }, h('span', { class: 'k' }, 'Diagnosis'), 'Huntington disease')),
-      h('p', { style: 'font-size:1.2em;font-weight:700;color:var(--pine);margin:calc(var(--u)*4) 0 0' }, 'The village is saved through accurate diagnosis, informed counselling, and recognition of inherited risk.')),
+      h('p', { style: 'font-size:1.2em;font-weight:700;color:var(--pine);margin:calc(var(--u)*4) 0 0' }, 'The village is saved through your excellent clinical reasoning! Well done Annabel, Tayyib, Jiajia, Simran and Hafsah.')),
     h('div', { class: 'btns' }, refsRow(REFS.scroll), btn('Continue', after || nextStep, { primary: true })),
   ]);
 }
@@ -1282,7 +1289,7 @@ function stepFinal(after) {
   showModal([
     h('div', { class: 'body', style: 'display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center' },
       h('div', { class: 'title sh', style: 'font-size:calc(var(--u)*16)' }, 'Mission complete.'),
-      h('p', { style: 'font-size:1.45em;margin:calc(var(--u)*2) 0 0' }, 'Now solve the next cases without the ninja.')),
+      h('p', { style: 'font-size:1.45em;margin:calc(var(--u)*2) 0 0' }, 'Now back to the main lesson!.')),
     h('div', { class: 'btns' }, btn('Back to the village', after || nextStep, { primary: true })),
   ], true);
 }
@@ -1390,7 +1397,7 @@ function updateLabels() {
     setText(promptEl, s.label + ' · E');
     const top = s.kind === 'shrine' ? LAYOUT.labels.shrine[1] - 2 : s.kind === 'hut' ? S.npc.healer.y - 20 : s.id === 'stone' ? LAYOUT.objects.stone[1] - 18 : s.kind === 'board' ? LAYOUT.objects.board[1] - 16 : s.kind === 'gate' ? LAYOUT.gateY - 18 : s.y - 19;
     const x = s.kind === 'hut' ? S.npc.healer.x : s.kind === 'board' ? LAYOUT.objects.board[0] : s.x;
-    placeAt(promptEl, Math.max(30, Math.min(354, x - cx)), Math.max(30, top - cy));
+    placeAt(promptEl, Math.max(30, Math.min(W - 30, x - cx)), Math.max(30, top - cy));
     promptEl.classList.remove('hidden');
   } else promptEl.classList.add('hidden');
   const list = stops();
@@ -1540,6 +1547,7 @@ window.addEventListener('keydown', (e) => {
     if (!e.repeat && S.phase !== 'title' && !S.shrineSolved) { S.shrineForced = true; toast('The Diagnosis Shrine is unlocked.'); updateHUD(); }
     return;
   }
+  if (code === 'KeyF') { if (!e.repeat) toggleFullscreen(); return; }
   if (code === 'KeyM') { if (!e.repeat) toggleMute(); return; }
   if (code === 'KeyV') { if (!e.repeat) toggleVoices(); return; }
   if (code === 'Minus' || code === 'NumpadSubtract') { setVolume(music.vol - 0.1, true); return; }
@@ -1607,7 +1615,10 @@ $('beginBtn').addEventListener('click', () => {
   setTimeout(() => { if (t.classList.contains('leaving')) t.classList.add('hidden'); }, 500);
   S.phase = 'explore'; updateHUD();
   startMusic(); unlockVoices();
+  if (!document.fullscreenElement) toggleFullscreen();   // Begin is a click, so the browser allows it
 });
+$('fsBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleFullscreen(); });
+$('quest').addEventListener('click', (e) => { e.currentTarget.classList.toggle('open'); });
 $('helpBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleOverlay('credits', false); toggleOverlay('help'); });
 $('creditsBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleOverlay('help', false); toggleOverlay('credits'); });
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { toggleOverlay('help', false); toggleOverlay('credits', false); }));
@@ -1989,14 +2000,18 @@ function frame(t) {
 }
 
 // ---------------------------------------------------------------------------
-// Scaling: integer scale when it fills most of the window, letterboxed in pine
+// Scaling: fill the whole window. The view keeps 384 x 216 as its minimum and
+// shows more of the village on wider or taller screens; only a screen shaped
+// beyond the world itself is letterboxed in pine.
 // ---------------------------------------------------------------------------
 function resize() {
   const dpr = window.devicePixelRatio || 1;
   const aw = window.innerWidth * dpr, ah = window.innerHeight * dpr;
-  let s = Math.min(aw / W, ah / H);
-  const si = Math.floor(s);
-  if (si >= 1 && si / s >= 0.85) s = si;
+  const aspect = aw / ah;
+  if (aspect >= 384 / 216) { H = 216; W = Math.min(WW, Math.round(216 * aspect)); }
+  else { W = 384; H = Math.min(WH, Math.round(384 / aspect)); }
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const s = Math.min(aw / W, ah / H);
   const cw = W * s / dpr, ch = H * s / dpr;
   stage.style.width = cw + 'px'; stage.style.height = ch + 'px';
   stage.style.left = Math.round((window.innerWidth - cw) / 2) + 'px';
@@ -2004,6 +2019,16 @@ function resize() {
   stage.style.setProperty('--u', (s / dpr) + 'px');
 }
 window.addEventListener('resize', resize);
+function toggleFullscreen() {
+  const d = document;
+  if (d.fullscreenElement) d.exitFullscreen().catch(() => {});
+  else if (d.documentElement.requestFullscreen) d.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+}
+document.addEventListener('fullscreenchange', () => {
+  const b = $('fsBtn');
+  if (b) b.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+  resize();
+});
 
 // ---------------------------------------------------------------------------
 // Boot
