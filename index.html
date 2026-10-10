@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Ninja Genetics: Save the Village</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/*__FONT__*/
+:root{--pine:#1C3B2E;--sage:#5B7F6E;--pale:#DCE6E0;--off:#F7F5F0;--ink:#1A1A1A;--amber:#C08A3E}
+html,body{margin:0;height:100%;background:var(--pine);overflow:hidden}
+body{font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+#stage{position:absolute;overflow:hidden;--u:5px;color:var(--ink);user-select:none;-webkit-user-select:none}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated;cursor:pointer}
+.px{font-family:"NinjaPixel",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.04em;word-spacing:.2em;font-weight:normal}
+.hidden{display:none!important}
+
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;height:calc(var(--u)*22);box-sizing:border-box;padding:calc(var(--u)*3) calc(var(--u)*4) 0;
+  background:linear-gradient(180deg,rgba(14,32,24,.62) 0%,rgba(14,32,24,.34) 45%,rgba(14,32,24,0) 100%);
+  color:var(--off);display:flex;align-items:flex-start;justify-content:space-between;gap:calc(var(--u)*4);pointer-events:none}
+.hpill{pointer-events:auto;display:flex;align-items:center;height:calc(var(--u)*11);box-sizing:border-box;padding:0 calc(var(--u)*3.6);
+  background:rgba(20,44,33,.62);border:calc(var(--u)*.3) solid rgba(220,230,224,.2);border-radius:calc(var(--u)*6);
+  box-shadow:0 calc(var(--u)*.8) calc(var(--u)*3.5) rgba(0,0,0,.22),inset 0 calc(var(--u)*.3) 0 rgba(247,245,240,.07)}
+.hsep{flex:none;width:calc(var(--u)*.3);height:calc(var(--u)*5.4);background:rgba(220,230,224,.22);margin:0 calc(var(--u)*2.6)}
+#quest{min-width:0;flex:0 1 auto}
+#seals,#scrolls{display:flex;align-items:center;gap:calc(var(--u)*1.3);flex:none}
+.scr{width:calc(var(--u)*3);height:calc(var(--u)*5);border-radius:calc(var(--u)*.8);box-sizing:border-box;border:calc(var(--u)*.5) dashed rgba(220,230,224,.45)}
+.scr.full{border:calc(var(--u)*.5) solid var(--off);background:var(--pale)}
+.scr.gold{border:calc(var(--u)*.5) solid var(--off);background:var(--amber);box-shadow:0 0 calc(var(--u)*1.6) rgba(192,138,62,.6)}
+.seal{width:calc(var(--u)*4.4);height:calc(var(--u)*4.4);border-radius:50%;box-sizing:border-box;border:calc(var(--u)*.5) dashed rgba(220,230,224,.45)}
+.seal.full{border:calc(var(--u)*.5) solid var(--off);background:radial-gradient(circle,var(--pine) 0 28%,var(--off) 31%);
+  box-shadow:0 0 calc(var(--u)*1.6) rgba(247,245,240,.35)}
+.hk{flex:none;font-size:calc(var(--u)*2.8);letter-spacing:.1em;color:var(--pine);background:var(--pale);
+  border-radius:calc(var(--u)*4);padding:calc(var(--u)*.9) calc(var(--u)*1.9) calc(var(--u)*.7);margin-right:calc(var(--u)*2.6)}
+#hint{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:"Shuriken","NinjaPixel",ui-monospace,monospace;
+  font-size:calc(var(--u)*5.8);font-weight:normal;line-height:1.1;letter-spacing:.04em;word-spacing:.12em;color:var(--off);
+  text-shadow:0 calc(var(--u)*.6) 0 rgba(8,24,17,.6)}
+#hint.swap{animation:hintIn .45s cubic-bezier(.2,.8,.25,1) both}
+@keyframes hintIn{from{opacity:0;transform:translateX(calc(var(--u)*-2.5))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#hint.swap{animation:none}}
+#controls{flex:none;padding:0 calc(var(--u)*1.4)}
+.hbtn{flex:none;font-family:"NinjaPixel",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.05em;word-spacing:.35em;font-size:calc(var(--u)*3.2);
+  background:transparent;color:var(--pale);border:0;border-radius:calc(var(--u)*4);padding:calc(var(--u)*1.6) calc(var(--u)*2.2);cursor:pointer;
+  transition:background-color .15s,color .15s}
+.hbtn:hover{background:rgba(220,230,224,.14);color:var(--off)}
+.hbtn.off{color:rgba(220,230,224,.45)}
+#controls .hsep{margin:0 calc(var(--u)*.8)}
+#music{flex:none;display:flex;align-items:center;gap:calc(var(--u)*1)}
+#musicBtn{min-width:calc(var(--u)*22);text-align:center}
+#vol{-webkit-appearance:none;appearance:none;width:calc(var(--u)*20);height:calc(var(--u)*1);border-radius:calc(var(--u)*1);margin:0 calc(var(--u)*1.4) 0 0;cursor:pointer;
+  background:linear-gradient(90deg,var(--pale) var(--p,50%),rgba(220,230,224,.2) var(--p,50%))}
+#vol::-webkit-slider-thumb{-webkit-appearance:none;width:calc(var(--u)*3.6);height:calc(var(--u)*3.6);border-radius:50%;background:var(--off);border:0;
+  box-shadow:0 0 0 calc(var(--u)*.6) rgba(20,44,33,.9)}
+#vol::-moz-range-thumb{width:calc(var(--u)*3.6);height:calc(var(--u)*3.6);border-radius:50%;background:var(--off);border:0;box-shadow:0 0 0 calc(var(--u)*.6) rgba(20,44,33,.9)}
+#vol::-moz-range-track{background:transparent}
+
+/* world labels */
+#labels{position:absolute;inset:0;pointer-events:none}
+.wl{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;font-size:calc(var(--u)*3.8);color:var(--pale);
+  background:rgba(28,59,46,.82);padding:calc(var(--u)*.3) calc(var(--u)*1.2);border-radius:calc(var(--u)*.8)}
+.wl.gate{padding:calc(var(--u)*.2) calc(var(--u)*1)}
+.wl.prompt{font-size:calc(var(--u)*4.4);background:var(--off);color:var(--pine);box-shadow:0 0 0 calc(var(--u)*.5) var(--pine);z-index:2}
+.wl.time{background:var(--ink);color:var(--off);font-family:inherit;font-size:calc(var(--u)*3.4);transform:translate(-50%,0)}
+
+/* panels */
+.panel{position:absolute;box-sizing:border-box;background:var(--off);background-clip:padding-box;
+  border:calc(var(--u)*4.2) solid var(--pine);border-image:var(--frame) 6 / calc(var(--u)*4.2) / 0 stretch;image-rendering:pixelated;
+  box-shadow:0 calc(var(--u)*2) calc(var(--u)*8) rgba(0,0,0,.42);
+  font-size:calc(var(--u)*5.6);line-height:1.32;color:var(--ink)}
+.sh{font-family:"Shuriken","NinjaPixel",ui-monospace,monospace;text-transform:none;letter-spacing:.03em;word-spacing:.12em}
+.panel.cardin{animation:cardIn .34s cubic-bezier(.2,.8,.25,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(calc(var(--u)*3.5))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.panel.cardin{animation:none}}
+#modal{left:calc(var(--u)*7);right:calc(var(--u)*7);bottom:calc(var(--u)*4.5);max-height:calc(var(--u)*193);
+  padding:calc(var(--u)*4.5) calc(var(--u)*6);display:flex;flex-direction:column;overflow:auto}
+#modal.tall{top:calc(var(--u)*18.5)}
+#caption{left:calc(var(--u)*7);right:calc(var(--u)*7);bottom:calc(var(--u)*4.5);padding:calc(var(--u)*4) calc(var(--u)*6);display:flex;flex-direction:column}
+#caption.top{top:calc(var(--u)*18.5);bottom:auto}
+.kicker{font-size:calc(var(--u)*4);color:var(--sage);text-transform:uppercase;margin-bottom:calc(var(--u)*1)}
+.title{font-size:calc(var(--u)*7.2);color:var(--pine);line-height:1.15;margin:0 0 calc(var(--u)*2.4)}
+.sub{color:var(--sage);margin:calc(var(--u)*-1.2) 0 calc(var(--u)*2.4)}
+.body{flex:1;min-height:0}
+.row{display:flex;gap:calc(var(--u)*6);align-items:flex-start}
+.portrait{flex:none;width:calc(var(--u)*30.4);height:calc(var(--u)*30.4);image-rendering:crisp-edges;image-rendering:pixelated;
+  border:calc(var(--u)*.9) solid var(--pine);border-radius:calc(var(--u)*1.2);background:var(--ink)}
+.portrait.light{background:var(--pale)}
+ul.find{margin:0;padding-left:1.1em}
+ul.find li{margin:0 0 calc(var(--u)*1)}
+.prompt-q{font-weight:700;color:var(--pine);margin:0 0 calc(var(--u)*2.4)}
+.btns{display:flex;flex-wrap:wrap;gap:calc(var(--u)*3);justify-content:flex-end;align-items:center;margin-top:calc(var(--u)*3);flex:none}
+.refs{display:flex;flex-wrap:wrap;align-items:center;gap:calc(var(--u)*1.6);margin-right:auto;font-size:calc(var(--u)*4.8);min-width:0}
+.refs .lbl{font-size:calc(var(--u)*3.2);color:var(--sage);margin-right:calc(var(--u)*.6)}
+a.ref{display:inline-flex;align-items:center;gap:calc(var(--u)*1.4);padding:calc(var(--u)*.7) calc(var(--u)*2.4) calc(var(--u)*.7) calc(var(--u)*.8);border-radius:calc(var(--u)*5);
+  background:var(--pale);color:var(--pine);text-decoration:none;font-weight:600;line-height:1.2;box-shadow:inset 0 0 0 calc(var(--u)*.4) rgba(91,127,110,.4);
+  transition:background-color .15s,box-shadow .15s}
+a.ref b{font-size:calc(var(--u)*3.2);font-weight:normal;letter-spacing:.06em;background:var(--pine);color:var(--off);border-radius:calc(var(--u)*4);padding:calc(var(--u)*.7) calc(var(--u)*1.6)}
+a.ref::after{content:"\2197";font-size:.9em;opacity:.55;margin-left:calc(var(--u)*-.4)}
+a.ref:hover{background:var(--off);box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--pine)}
+a.ref:hover::after{opacity:1}
+.btn{position:relative;overflow:hidden;font:inherit;font-size:calc(var(--u)*5.2);font-weight:600;padding:calc(var(--u)*2) calc(var(--u)*5.5);
+  border:none;border-radius:calc(var(--u)*1.2);background:var(--pine);color:var(--off);cursor:pointer}
+.btn:hover:not(:disabled){background:#28533F}
+.btn:disabled{cursor:default;background:var(--sage);opacity:.6}
+.btn .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(247,245,240,.35)}
+.btn.go .fill{width:100%;transition:width 2s linear}
+.btn.secondary{background:transparent;color:var(--pine);box-shadow:inset 0 0 0 calc(var(--u)*.6) var(--pine)}
+.btn.secondary:hover:not(:disabled){background:var(--pale)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*2.4);margin:calc(var(--u)*2) 0}
+.opts.one{grid-template-columns:1fr}
+.opt{font:inherit;text-align:left;padding:calc(var(--u)*2.2) calc(var(--u)*3.5);border:none;border-radius:calc(var(--u)*1.2);cursor:pointer;
+  background:var(--pale);color:var(--ink);box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--sage)}
+.opt:hover:not(:disabled){box-shadow:inset 0 0 0 calc(var(--u)*.8) var(--pine)}
+.opt:disabled{cursor:default}
+.opt.tried{opacity:.55}
+.opt.right{background:var(--amber);box-shadow:none;font-weight:700;opacity:1;animation:stampIn .36s cubic-bezier(.2,.9,.2,1) both}
+@keyframes stampIn{0%{transform:scale(1.05)}55%{transform:scale(.99)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.opt.right{animation:none}}
+.result{background:var(--amber);color:var(--ink);font-weight:700;font-size:1.08em;border-radius:calc(var(--u)*1.2);padding:calc(var(--u)*2.4) calc(var(--u)*4);margin:calc(var(--u)*2) 0}
+.result .k{display:block;font-weight:600;font-size:.8em;opacity:.85}
+.feedback{background:var(--pale);border-left:calc(var(--u)*1.2) solid var(--sage);padding:calc(var(--u)*2) calc(var(--u)*3.5);margin:calc(var(--u)*2) 0;border-radius:calc(var(--u)*.8)}
+.note{color:var(--pine);background:var(--pale);border-radius:calc(var(--u)*1);padding:calc(var(--u)*1.6) calc(var(--u)*3);margin-top:calc(var(--u)*2);font-size:.92em}
+.entry{margin:0 0 calc(var(--u)*3)}
+.entry .q{font-weight:700;color:var(--pine)}
+.entry .tpbtn{font:inherit;font-size:.86em;margin-top:calc(var(--u)*1.2);padding:calc(var(--u)*1.2) calc(var(--u)*3.4);border:none;border-radius:calc(var(--u)*1);
+  background:transparent;color:var(--pine);box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--pine);cursor:pointer}
+.entry .tp{margin-top:calc(var(--u)*1.2);background:var(--pale);border-left:calc(var(--u)*1.2) solid var(--pine);padding:calc(var(--u)*1.8) calc(var(--u)*3.5);border-radius:calc(var(--u)*.8)}
+.big-q{font-size:1.08em;font-weight:700;color:var(--pine);margin:0 0 calc(var(--u)*3)}
+.sil{flex:none;width:calc(var(--u)*30.4);height:calc(var(--u)*30.4);image-rendering:crisp-edges;image-rendering:pixelated;background:var(--pale);border-radius:calc(var(--u)*1.2);
+  border:calc(var(--u)*.9) solid var(--sage)}
+ul.dims{margin:0;padding-left:1.1em;font-size:1.12em}
+ul.dims li{margin-bottom:calc(var(--u)*1.2)}
+
+/* CAG challenge */
+.tray{display:flex;flex-wrap:wrap;gap:calc(var(--u)*2);min-height:calc(var(--u)*11);padding:calc(var(--u)*1.6);border-radius:calc(var(--u)*1.2);
+  background:var(--pale);margin-bottom:calc(var(--u)*2.4);align-items:center}
+.tray .lbl{color:var(--sage);margin-right:calc(var(--u)*1)}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*2.4)}
+.col{border-radius:calc(var(--u)*1.2);box-shadow:inset 0 0 0 calc(var(--u)*.6) var(--sage);padding:calc(var(--u)*1.6);min-height:calc(var(--u)*30);cursor:pointer;
+  display:flex;flex-direction:column;gap:calc(var(--u)*1.4)}
+.col.target{box-shadow:inset 0 0 0 calc(var(--u)*.9) var(--pine);background:#EEF3F0}
+.col h4{margin:0;font-size:.95em;color:var(--pine)}
+.col .range{background:var(--amber);color:var(--ink);font-weight:700;border-radius:calc(var(--u)*.8);padding:calc(var(--u)*.4) calc(var(--u)*1.6);font-size:.86em;align-self:flex-start}
+.chip{font:inherit;font-weight:700;border:none;border-radius:calc(var(--u)*1);padding:calc(var(--u)*1.2) calc(var(--u)*2.6);background:var(--off);color:var(--ink);
+  box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--pine);cursor:pointer;text-align:left}
+.chip.sel{background:var(--pine);color:var(--off)}
+.chip .mk{margin-left:calc(var(--u)*1.6)}
+.chip.ok .mk{color:var(--pine)}
+.chip.no{box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--sage);border:calc(var(--u)*.5) dashed var(--sage)}
+.chip.sel .mk{color:var(--off)}
+.chip{touch-action:none;cursor:grab;user-select:none}
+.chip.dragging{opacity:.3}
+.chip.ghost{position:fixed;z-index:1000;pointer-events:none;margin:0;cursor:grabbing;transform:rotate(-2deg);
+  box-shadow:inset 0 0 0 calc(var(--u)*.5) var(--pine),0 calc(var(--u)*1.2) calc(var(--u)*2.4) rgba(26,26,26,.35)}
+.col.over,.tray.over{box-shadow:inset 0 0 0 calc(var(--u)*.9) var(--pine);background:#E3ECE7}
+
+/* pedigree */
+.ped{width:100%;flex:1;min-height:0}
+.ped text{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+.legend{display:flex;gap:calc(var(--u)*6);flex-wrap:wrap;color:var(--pine);font-size:.9em}
+
+/* overlays */
+.ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ov .box{position:relative;max-width:82%;padding:calc(var(--u)*6) calc(var(--u)*8)}
+#pause{background:rgba(26,26,26,.62);z-index:50}
+#pause .box{text-align:center}
+#help,#credits,#confirm{background:rgba(26,26,26,.45);z-index:40}
+#credits .box{max-height:calc(var(--u)*196);overflow:auto;box-sizing:border-box}
+.srclist{columns:2;column-gap:calc(var(--u)*6);margin:calc(var(--u)*1) 0 0;padding:0;list-style:none;font-size:.7em;line-height:1.3}
+.srclist li{break-inside:avoid;margin:0 0 calc(var(--u)*1.4)}
+.srclist a{color:var(--pine);text-decoration:underline;text-decoration-color:rgba(91,127,110,.5);text-underline-offset:.15em}
+.srclist a:hover{text-decoration-color:var(--pine)}
+#title{z-index:30;transition:opacity .5s ease;overflow:hidden;
+  background:radial-gradient(ellipse 68% 64% at 50% 50%,rgba(28,59,46,.18) 0%,rgba(28,59,46,.44) 55%,rgba(18,40,31,.9) 100%)}
+#title.leaving{opacity:0;pointer-events:none}
+#title .box{position:relative;width:calc(var(--u)*262);max-width:none;box-sizing:border-box;text-align:center;
+  padding:calc(var(--u)*15) calc(var(--u)*13) calc(var(--u)*7);
+  border-width:calc(var(--u)*6);border-image:var(--frame) 6 / calc(var(--u)*6) / 0 stretch;
+  background:linear-gradient(180deg,#FBFAF6 0%,#F2F0E8 100%);background-clip:padding-box;
+  box-shadow:0 calc(var(--u)*4) calc(var(--u)*18) rgba(8,24,17,.55);
+  animation:titleIn .9s cubic-bezier(.2,.7,.2,1) both}
+#title .crest{position:absolute;left:50%;top:calc(var(--u)*-3);transform:translate(-50%,-50%);width:calc(var(--u)*26);height:calc(var(--u)*26);
+  border-radius:50%;background:var(--pale);border:calc(var(--u)*1.2) solid var(--pine);image-rendering:pixelated;
+  box-shadow:0 0 0 calc(var(--u)*1.2) var(--sage),0 calc(var(--u)*1.5) calc(var(--u)*5) rgba(8,24,17,.35)}
+#title h1{margin:0;line-height:1;color:var(--pine);font-weight:normal}
+#title h1 .t1{display:block;font-size:calc(var(--u)*17);text-shadow:0 calc(var(--u)*.8) 0 var(--pale)}
+#title h1 .t2{display:block;font-size:calc(var(--u)*8);color:var(--sage);margin-top:calc(var(--u)*2.2);letter-spacing:.12em}
+#title .petals{position:absolute;inset:0;pointer-events:none}
+#title .petals i{position:absolute;top:calc(var(--u)*-6);width:calc(var(--u)*2.2);height:calc(var(--u)*1.6);border-radius:60% 0 60% 0;
+  background:#F2C9CF;opacity:.85;will-change:transform;animation:petal linear infinite}
+@keyframes petal{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(calc(var(--u)*-60),calc(var(--u)*240),0) rotate(540deg)}}
+#title .rule{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*2.4);margin:calc(var(--u)*5) auto calc(var(--u)*4.5)}
+#title .rule i{display:block;height:calc(var(--u)*.5);width:calc(var(--u)*26);background:linear-gradient(90deg,rgba(91,127,110,0),var(--sage))}
+#title .rule i:last-child{transform:scaleX(-1)}
+#title .rule b{display:block;width:calc(var(--u)*1.8);height:calc(var(--u)*1.8);background:var(--sage);transform:rotate(45deg)}
+#title .premise{margin:0 auto;max-width:calc(var(--u)*222);line-height:1.45;color:#2A3832}
+#title .btns{justify-content:center;margin-top:calc(var(--u)*6.5)}
+#title .btn{font-size:calc(var(--u)*6);padding:calc(var(--u)*2.6) calc(var(--u)*16);border-radius:calc(var(--u)*2.4);
+  box-shadow:0 0 0 calc(var(--u)*.8) var(--pale),0 0 0 calc(var(--u)*1.4) var(--sage);will-change:transform;animation:breathe 2.8s ease-in-out 1s infinite}
+#title .foot{color:var(--sage);font-size:.8em;margin-top:calc(var(--u)*5)}
+@keyframes titleIn{from{opacity:0;transform:translateY(calc(var(--u)*6)) scale(.98)}to{opacity:1;transform:none}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){#title .box,#title .btn,#title .petals i{animation:none}#title .petals{display:none}#title{transition:none}}
+table.keys{border-collapse:collapse;font-size:.92em}
+table.keys td{padding:calc(var(--u)*.7) calc(var(--u)*3) calc(var(--u)*.7) 0;vertical-align:top}
+table.keys td:first-child{font-weight:700;color:var(--pine);white-space:nowrap}
+#toast{position:absolute;left:50%;top:calc(var(--u)*18);transform:translateX(-50%);background:var(--ink);color:var(--off);font-size:calc(var(--u)*4.4);
+  padding:calc(var(--u)*1.4) calc(var(--u)*4);border-radius:calc(var(--u)*1.2);z-index:45;transition:opacity .4s;pointer-events:none}
+.scrollart{display:flex;align-items:center;gap:calc(var(--u)*6)}
+.scrollart canvas{width:calc(var(--u)*28);height:calc(var(--u)*28);image-rendering:crisp-edges;image-rendering:pixelated;flex:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="384" height="216"></canvas>
+  <div id="labels"></div>
+  <div id="hud" class="hidden">
+    <div id="quest" class="hpill">
+      <div id="scrolls"><span class="scr" title="Inheritance scroll"></span><span class="scr" title="Phenotype scroll"></span><span class="scr" title="Repeat scroll"></span><span class="scr" title="Counselling scroll"></span></div>
+      <span class="hsep"></span>
+      <div id="seals" title="Seals left"><span class="seal full"></span><span class="seal full"></span><span class="seal full"></span></div>
+      <span class="hsep"></span>
+      <span class="hk px" id="hintKicker">Next</span>
+      <div id="hint"></div>
+    </div>
+    <div id="controls" class="hpill">
+      <div id="music" class="hidden">
+        <button class="hbtn" id="musicBtn" tabindex="-1" title="Mute or unmute music (M)">Music 50%</button>
+        <input type="range" id="vol" min="0" max="100" step="5" value="50" tabindex="-1" aria-label="Music volume">
+        <span class="hsep"></span>
+      </div>
+      <button class="hbtn hidden" id="voiceBtn" tabindex="-1" title="Character voices on or off (V)">Voices on</button>
+      <span class="hsep hidden" id="voiceSep"></span>
+      <button class="hbtn" id="helpBtn" tabindex="-1" title="Help (H)">Help</button>
+      <button class="hbtn" id="creditsBtn" tabindex="-1">Credits</button>
+    </div>
+  </div>
+  <div id="modal" class="panel hidden"></div>
+  <div id="caption" class="panel hidden"></div>
+  <div id="toast" class="hidden"></div>
+
+  <div id="title" class="ov">
+    <div class="petals" id="petals" aria-hidden="true"></div>
+    <div class="box panel">
+      <img class="crest" id="crest" alt="">
+      <h1 class="sh"><span class="t1">Neuro-Ninjas</span> <span class="t2">Save the Village</span></h1>
+      <div class="rule" aria-hidden="true"><i></i><b></b><i></i></div>
+      <p class="premise">The village of Kagehama is in danger. Mio has developed a mysterious neurological illness: she is becoming uncoordinated, forgetful and distressed. The healer suspects it is inherited, but no one understands why symptoms appeared earlier and more severely in some of her family. You are a team of medical ninjas. Find the genetic clues, name Mio's diagnosis and find the right clinical pathway for her family.</p>
+      <div class="btns"><button class="btn" id="beginBtn" data-primary tabindex="-1">Begin</button></div>
+      <div class="foot">All characters are fictional.</div>
+    </div>
+  </div>
+
+  <div id="help" class="ov hidden">
+    <div class="box panel">
+      <div class="title px">Controls</div>
+      <table class="keys">
+        <tr><td>Arrow keys / WASD</td><td>Walk</td></tr>
+        <tr><td>Click the ground</td><td>Walk to that spot</td></tr>
+        <tr><td>E</td><td>Talk or examine when close</td></tr>
+        <tr><td>Space / Enter</td><td>Continue in cards</td></tr>
+        <tr><td>Space or J</td><td>Jump</td></tr>
+        <tr><td>Click a character</td><td>Walk to them and open their card</td></tr>
+        <tr><td>P</td><td>Pause (dims the screen)</td></tr>
+        <tr><td>M</td><td>Mute or unmute the music</td></tr>
+        <tr><td>− / +</td><td>Music volume down or up (or use the slider at the top)</td></tr>
+        <tr><td>V</td><td>Character voices on or off</td></tr>
+        <tr><td>H</td><td>Show or hide this help</td></tr>
+        <tr><td>C</td><td>Credits</td></tr>
+        <tr><td>G</td><td>Show proximity radii and walk times from the start</td></tr>
+        <tr><td>Shift + U</td><td>Unlock the Diagnosis Shrine early</td></tr>
+        <tr><td>Shift + R</td><td>Restart (asks to confirm)</td></tr>
+        <tr><td>Esc</td><td>Close the current screen and return to the village</td></tr>
+      </table>
+      <div class="btns"><button class="btn" data-close tabindex="-1">Close</button></div>
+    </div>
+  </div>
+
+  <div id="credits" class="ov hidden">
+    <div class="box panel">
+      <div class="title px">Credits</div>
+      <p style="margin:0">Art and character voices: Ninja Adventure asset pack by Pixel-boy and AAA, CC0. pixel-boy.itch.io/ninja-adventure-asset-pack</p>
+      <div class="kicker px" style="margin-top:calc(var(--u)*4)">Sources (open in browser)</div>
+      <ul id="srcList" class="srclist"></ul>
+      <div class="btns"><button class="btn" data-close tabindex="-1">Close</button></div>
+    </div>
+  </div>
+
+  <div id="confirm" class="ov hidden">
+    <div class="box panel">
+      <div class="title px">Restart?</div>
+      <p style="margin:0">This clears all progress and returns to the title screen.</p>
+      <div class="btns">
+        <button class="btn secondary" id="cancelRestart" tabindex="-1">Cancel</button>
+        <button class="btn" id="doRestart" tabindex="-1">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause" class="ov hidden">
+    <div class="box panel">
+      <div class="title px" style="margin:0">Paused</div>
+      <p style="margin:calc(var(--u)*2) 0 0">Press P or Esc to carry on.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/*__DATA__*/
+
+// ---------------------------------------------------------------------------
+// ROLE TO SPRITE AND PORTRAIT MAPPING. Edit one line to swap a character.
+// Names are Ninja Adventure "Actor/Character" folders. Only embedded sprites
+// can be used; the full list is printed in the browser console at start-up.
+// voice is an "Audio/Sounds/Voice" clip (Voice1 to Voice10); pitch 1 is as
+// recorded, lower is deeper.
+// ---------------------------------------------------------------------------
+const ROLES = {
+  avatar:      { sprite: 'NinjaGreen',     portrait: 'NinjaGreen' },
+  father:      { sprite: 'Monk',           portrait: 'Monk',           voice: 'Voice9',  pitch: 0.78 },
+  mio:         { sprite: 'Princess',       portrait: 'Princess',       voice: 'Voice6',  pitch: 1.05 },
+  sister:      { sprite: 'Woman',          portrait: 'Woman',          voice: 'Voice7',  pitch: 1.0 },
+  grandmother: { sprite: 'OldWoman',       portrait: 'OldWoman',       voice: 'Voice10', pitch: 0.86 },
+  healer:      { sprite: 'OldMan3',        portrait: 'OldMan3',        voice: 'Voice2',  pitch: 0.72 },
+  hana:        { sprite: 'SorcererOrange', portrait: 'SorcererOrange', voice: 'Voice5',  pitch: 0.95 },
+  ren:         { sprite: 'Boy',            portrait: 'Boy',            voice: 'Voice8',  pitch: 1.12 },
+  child:       { sprite: 'Villager',       portrait: 'Villager',       voice: 'Voice4',  pitch: 1.3 },
+};
+
+const W = 384, H = 216, RADIUS = 24, SPEED = 100, NPC_SPEED = 42;
+const WW = LAYOUT.world[0], WH = LAYOUT.world[1];
+const JUMP_T = 0.46, JUMP_H = 11;
+const cam = { x: 0, y: 0 };
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+const DISORDERS = ['Huntington disease', 'Myotonic dystrophy type 1', 'Fragile X syndrome', 'Friedreich ataxia'];
+const CATS = ['Normal', 'Intermediate', 'Reduced penetrance', 'Full penetrance'];
+const RANGES = ['26 or fewer', '27–35', '36–39', '40 or more'];
+
+// Further reading shown as "Read more" links once an answer has been revealed.
+// NICE has no guideline for any of these four conditions, so NHS, BMJ and
+// peer-reviewed sources are used instead.
+const SRC = {
+  nhsHD:     { tag: 'NHS', title: "Huntington's disease", url: 'https://www.nhs.uk/conditions/huntingtons-disease/', cite: "NHS website: Huntington's disease" },
+  bmjHD:     { tag: 'BMJ', title: 'Best Practice: HD', url: 'https://bestpractice.bmj.com/topics/en-gb/513', cite: "BMJ Best Practice: Huntington's disease" },
+  bmjRevHD:  { tag: 'BMJ', title: 'Clinical review, 2010', url: 'https://www.bmj.com/content/340/bmj.c3109', cite: "Novak MJU, Tabrizi SJ. Huntington's disease. BMJ 2010;340:c3109" },
+  grHD:      { tag: 'GeneReviews', title: 'Huntington disease', url: 'https://www.ncbi.nlm.nih.gov/books/NBK1305/', cite: 'Caldeira Brás I, Dawson J, Kay C, Caron NS, Hayden MR. Huntington Disease. GeneReviews (NCBI Bookshelf NBK1305)' },
+  acmgHD:    { tag: 'PubMed', title: 'CAG ranges: ACMG 2014', url: 'https://pubmed.ncbi.nlm.nih.gov/25356969/', cite: 'Bean L, Bayrak-Toydemir P. ACMG technical standards and guidelines for Huntington disease. Genet Med 2014;16:e2. PMID 25356969' },
+  ehdnTest:  { tag: 'PubMed', title: 'Predictive testing, 2013', url: 'https://pubmed.ncbi.nlm.nih.gov/22642570/', cite: "MacLeod R et al. Recommendations for the predictive genetic test in Huntington's disease. Clin Genet 2013;83:221-31. PMID 22642570" },
+  hdaGuide:  { tag: 'HDA', title: 'UK professional guidelines', url: 'https://www.hda.org.uk/professionals-and-training/resources-for-professionals/professional-guidelines/', cite: "Huntington's Disease Association: professional guidelines, including genetics and genetic testing" },
+  gnHD:      { tag: 'NHS GeNotes', title: 'Huntington disease', url: 'https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/huntington-disease/', cite: 'NHS England Genomics Education Programme, GeNotes: Huntington disease' },
+  gnRepeat:  { tag: 'NHS GeNotes', title: 'Repeat expansion disorders', url: 'https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/repeat-expansion-disorders/', cite: 'NHS England Genomics Education Programme, GeNotes: Repeat expansion disorders' },
+  orrRepeat: { tag: 'PubMed', title: 'Repeat disorders review', url: 'https://pubmed.ncbi.nlm.nih.gov/17417937/', cite: 'Orr HT, Zoghbi HY. Trinucleotide repeat disorders. Annu Rev Neurosci 2007;30:575-621. PMID 17417937' },
+  gnDM:      { tag: 'NHS GeNotes', title: 'Myotonic dystrophy', url: 'https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/myotonic-dystrophy/', cite: 'NHS England Genomics Education Programme, GeNotes: Myotonic dystrophy' },
+  grDM1:     { tag: 'GeneReviews', title: 'Myotonic dystrophy type 1', url: 'https://www.ncbi.nlm.nih.gov/books/NBK1165/', cite: 'Myotonic Dystrophy Type 1. GeneReviews (NCBI Bookshelf NBK1165)' },
+  careDM1:   { tag: 'PubMed', title: 'DM1 care, 2018', url: 'https://pubmed.ncbi.nlm.nih.gov/30588381/', cite: 'Ashizawa T et al. Consensus-based care recommendations for adults with myotonic dystrophy type 1. Neurol Clin Pract 2018;8:507-20. PMID 30588381' },
+  gnFXS:     { tag: 'NHS GeNotes', title: 'Fragile X syndrome', url: 'https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/fragile-x-syndrome/', cite: 'NHS England Genomics Education Programme, GeNotes: Fragile X syndrome' },
+  grFXS:     { tag: 'GeneReviews', title: 'FMR1 disorders', url: 'https://www.ncbi.nlm.nih.gov/books/NBK1384/', cite: 'FMR1 Disorders. GeneReviews (NCBI Bookshelf NBK1384)' },
+  revFXS:    { tag: 'PubMed', title: 'Fragile X review, 2017', url: 'https://pubmed.ncbi.nlm.nih.gov/28960184/', cite: 'Hagerman RJ et al. Fragile X syndrome. Nat Rev Dis Primers 2017;3:17065. PMID 28960184' },
+  gnFRDA:    { tag: 'NHS GeNotes', title: 'Friedreich ataxia', url: 'https://www.genomicseducation.hee.nhs.uk/genotes/knowledge-hub/friedreich-ataxia/', cite: 'NHS England Genomics Education Programme, GeNotes: Friedreich ataxia' },
+  grFRDA:    { tag: 'GeneReviews', title: 'Friedreich ataxia', url: 'https://www.ncbi.nlm.nih.gov/books/NBK1281/', cite: 'Friedreich Ataxia. GeneReviews (NCBI Bookshelf NBK1281)' },
+  cmgFRDA:   { tag: 'PubMed', title: 'FRDA guidelines, 2022', url: 'https://pubmed.ncbi.nlm.nih.gov/36371255/', cite: 'Corben LA et al. Clinical management guidelines for Friedreich ataxia. Orphanet J Rare Dis 2022;17:415. PMID 36371255' },
+};
+const REFS = {
+  father:      [SRC.nhsHD, SRC.bmjHD, SRC.grHD],
+  mio:         [SRC.grHD, SRC.acmgHD, SRC.bmjRevHD],
+  stone:       [SRC.gnRepeat, SRC.orrRepeat, SRC.grHD],
+  sister:      [SRC.ehdnTest, SRC.hdaGuide, SRC.gnHD],
+  grandmother: [SRC.grHD, SRC.ehdnTest],
+  hana:        [SRC.gnDM, SRC.grDM1, SRC.careDM1],
+  ren:         [SRC.gnFXS, SRC.grFXS, SRC.revFXS],
+  child:       [SRC.gnFRDA, SRC.grFRDA, SRC.cmgFRDA],
+  hut:         [SRC.grHD, SRC.acmgHD],
+  gates:       [[SRC.nhsHD, SRC.grHD], [SRC.gnDM, SRC.grDM1], [SRC.gnFXS, SRC.grFXS], [SRC.gnFRDA, SRC.grFRDA]],
+  shrine:      [SRC.bmjHD, SRC.gnHD, SRC.ehdnTest],
+  board:       [SRC.gnHD, SRC.gnRepeat],
+  scroll:      [SRC.nhsHD, SRC.bmjHD, SRC.hdaGuide],
+};
+
+const CHARS = {
+  father: {
+    name: "Mio's father", age: '58',
+    predict: ['Likely diagnosis', 'Repeat sequence', 'Inheritance pattern', 'Expected age of onset'],
+    findings: ['Involuntary, irregular movements', 'Irritability and depression', 'Difficulty planning tasks', 'Similar illness in his own father', 'Symptoms began at 48'],
+    lab: { flag: 'fatherCag', name: 'HTT CAG repeat test (city laboratory)', result: 'HTT CAG repeats: 17 and 44' },
+    onReveal: () => { S.board.father = true; S.board.grandfatherHint = true; },
+  },
+  mio: {
+    name: 'Mio', age: '32',
+    predict: ['Repeat category'],
+    findings: ['Chorea-like movements', 'Irritability', 'Reduced concentration', 'Father with similar symptoms', 'Symptoms began at 29'],
+    test: { type: 'seal', name: 'HTT CAG repeat test', result: 'HTT CAG repeats: 18 and 52' },
+    lock: () => !S.board.fatherCag && "Mio's question needs her father's repeat count. The healer's hut has it.",
+    onReveal: () => { S.board.mio = true; },
+    onTest: () => { S.board.mioCag = true; },
+  },
+  stone: {
+    name: "Grandfather's memorial stone", age: 'Died aged 72', portraitImg: 'memorial',
+    predict: ['What the family pattern might show'],
+    findings: ['From about 68 he developed personality change and abnormal movements, recorded at the time as a late-life psychiatric illness.', "His son's symptoms began at 48; Mio's at 29."],
+    note: 'The noticeboard now shows three generations and the ages at onset: 68, 48, 29.',
+    onReveal: () => { S.board.grandfather = true; S.board.grandfatherHint = true; S.board.onsets = true; S.board.father = true; S.board.mio = true; },
+  },
+  sister: {
+    name: "Mio's sister", age: '28',
+    predict: ['Her risk', 'Whether testing her now is appropriate'],
+    findings: ['No neurological symptoms', 'Her father and her sister are affected', 'She asks whether she should be tested'],
+    lock: () => !S.board.mioCag && "Her question depends on Mio's result. Come back once Mio has been tested.",
+    onReveal: () => { S.board.sister = true; },
+  },
+  grandmother: {
+    name: 'Grandmother', age: '82',
+    predict: ['What testing her would tell us'],
+    findings: ["The grandfather's wife, who married into the family", 'Clinically unaffected'],
+    test: { type: 'seal', name: 'HTT CAG repeat test', result: 'HTT CAG repeats: 17 and 20. No HD-associated expansion.' },
+    explain: [
+      { q: 'Have we ruled out HD in the family?', a: 'No.' },
+      { q: null, a: "The result is accurate but uninformative, because HD came through the grandfather's line, not hers. Testing should start with the affected, clinically informative person where possible." },
+    ],
+    onReveal: () => { S.board.grandmother = true; },
+  },
+  hana: {
+    name: 'Hana', age: '45', sub: 'A neighbour',
+    predict: ['Likely diagnosis'],
+    findings: ['Difficulty releasing a handshake', 'Cataracts', 'Cardiac conduction abnormality'],
+    test: { type: 'declined', name: 'Genetic test', button: 'Offer a genetic test', result: 'Hana declines genetic testing. Her decision is respected.' },
+    explain: [
+      { q: 'Can we still propose a likely diagnosis?', a: 'DM1 is clinically likely, but genetic confirmation is unavailable because she declined. Her refusal is respected; testing is never compulsory.' },
+    ],
+  },
+  ren: {
+    name: 'Ren', age: '16', sub: 'A neighbour',
+    predict: ['Likely diagnosis', 'Whether a test would be diagnostic or predictive'],
+    findings: ['Learning disability', 'Long face', 'Large testes'],
+    test: { type: 'seal', name: 'FMR1 CGG repeat test', result: 'FMR1 CGG repeat: over 200, a full mutation' },
+    explain: [
+      { q: 'Is a test for Ren predictive or diagnostic?', a: 'Diagnostic here, because he has clinical features. Testing a young person with no features only because of family worry would be predictive. Either way he needs specialist genetic counselling, with Ren involved in the decision and appropriate consent.' },
+    ],
+  },
+  child: {
+    name: 'Village child', age: '10',
+    predict: ['Likely diagnosis'],
+    findings: ['Ataxia', 'Dysarthria', 'Scoliosis'],
+    explain: [{ q: null, a: 'This pattern points towards Friedreich ataxia; compare Gate 4.' }],
+  },
+};
+
+// [CAG repeats, correct category]. Boundary values either side of each HD
+// cut-off, shuffled and lettered A to F at the start of each game.
+const HUT_CAGS = [[26, 0], [27, 1], [35, 1], [36, 2], [39, 2], [40, 3]];
+const HUT_PASS = 6;
+
+// One forced choice per core stop. options[0] is the correct answer (the
+// display order is shuffled once per game). Every option has the same shape
+// and roughly the same length; each wrong one carries exactly one error, and
+// its "no" line names that error. quizAudit() warns in the console if the
+// correct option is usually the longest.
+const QUIZ = {
+  stone: {
+    kicker: 'Inheritance scroll', title: "Grandfather's memorial stone", label: 'Anticipation',
+    prompt: 'Onset: the grandfather at about 68, his son at 48, Mio at 29. Which explanation fits best?',
+    options: [
+      { t: "Anticipation: the repeat grew down the paternal line, so onset came earlier. It cannot date any one person's onset." },
+      { t: 'Anticipation: in HD the repeat expands mainly when passed on by the mother, which is why onset fell in each generation here.',
+        no: 'Not yet. Check who passed the gene at each step: grandfather to son, son to Mio. In HD, expansion happens mainly on paternal transmission.' },
+      { t: "A new mutation in the father: the grandfather's late illness was recorded as psychiatric, so his history does not count.",
+        no: 'Not yet. Late-onset HD is often mislabelled as psychiatric illness or dementia. A misattributed diagnosis does not make the family history negative.' },
+      { t: 'Variable expressivity: three relatives with different ages at onset, so their features and severity are expected to differ.',
+        no: 'Not yet. Expressivity is about which features appear and how severe they are. A steady fall in onset age across generations has its own name.' },
+    ],
+    right: 'In HD the CAG repeat is unstable and tends to expand when the father passes it on, as at both steps here. Repeat length explains only part of the variation in onset age.',
+    refs: 'stone',
+  },
+  board: {
+    kicker: 'Inheritance scroll', title: 'Noticeboard: the family tree', label: 'Autosomal dominant',
+    prompt: "The tree: the grandfather is affected, then his son, then Mio. Mio's mother, who married in, is 55 and has no symptoms. Which feature argues most strongly against X-linked inheritance?",
+    options: [
+      { t: 'Male-to-male transmission: the grandfather passed it to his son, and a father gives his son a Y, never an X.' },
+      { t: 'Both sexes are affected: Mio and her father both have the disorder, which an X-linked condition could not produce.',
+        no: 'Not yet. X-linked dominant conditions affect both sexes, and X-linked recessive ones can affect females. Look for a transmission an X chromosome cannot make.' },
+      { t: 'Every generation is affected: three generations in a row show the disorder, which rules out an X-linked pattern.',
+        no: 'Not yet. Vertical transmission fits any dominant pattern, including X-linked dominant. Look at which parent passed it to whom.' },
+      { t: 'The mother is unaffected: an X-linked condition in Mio would need an affected or carrier mother, so this excludes it.',
+        no: 'Not yet. An affected father passes his X to every daughter, so X-linked dominant inheritance does not need the mother. Look at the father-to-son link.' },
+    ],
+    right: 'Male-to-male transmission excludes X-linked inheritance. Both sexes are affected and every generation shows the disorder, so the pattern is autosomal dominant: each child of an affected parent has a 50% risk.',
+    refs: 'board',
+  },
+  father: {
+    kicker: 'Phenotype scroll', title: "Mio's father", label: 'Variable expressivity',
+    prompt: 'The grandfather had personality change, then late movements. His son has chorea, depression and difficulty planning. What explains the difference?',
+    options: [
+      { t: 'Variable expressivity: one disorder with different features and severity in two relatives who are both affected.' },
+      { t: "Incomplete penetrance: the grandfather's illness was milder and mostly psychiatric, so his allele was only partly penetrant.",
+        no: 'Not yet. Penetrance asks only whether the disorder appears at all. Both men developed it, so both alleles were penetrant.' },
+      { t: 'Anticipation: father and son have different symptoms, which shows the repeat changed length between the generations.',
+        no: 'Not yet. Anticipation is earlier onset (often with greater severity) in later generations. It does not describe which symptoms appear.' },
+      { t: 'Two separate disorders: a late-life psychiatric illness in the grandfather and an unrelated movement disorder in his son.',
+        no: 'Not yet. Chorea, psychiatric change and cognitive change are all features of one disorder. Different mixes within one family are expected.' },
+    ],
+    right: 'HD can begin with movement, psychiatric or cognitive features, and the mix varies even within one family. Penetrance (does it appear?) and expressivity (how does it appear?) are separate questions.',
+    refs: 'father',
+  },
+  hut36: {
+    kicker: 'Repeat scroll', title: "Healer's hut", label: 'Reduced penetrance',
+    prompt: 'A person has 36 CAG repeats in HTT. What can you say?',
+    options: [
+      { t: 'Reduced penetrance: they may or may not develop HD, and a child can inherit an allele that has expanded further.' },
+      { t: 'A premutation: the person stays well, but their children are at risk if the repeat expands in the next generation.',
+        no: "Not yet. 'Premutation' is the Fragile X and DM1 term. In HD, 36 to 39 is reduced penetrance: the person themselves may develop the disorder." },
+      { t: 'Full penetrance: 36 is already in the disease range, so symptoms will start, though the exact age cannot be predicted.',
+        no: 'Not yet. The full-penetrance range starts at 40. At 36 to 39, some people develop HD and some never do.' },
+      { t: 'Intermediate: the person will not develop HD, but the allele is unstable and can expand when passed to a child.',
+        no: 'Not yet. Intermediate is 27 to 35. At 36 the person themselves can develop HD.' },
+    ],
+    right: 'At 36 to 39 repeats some people develop HD, often later in life, and some never do. These cut-offs belong to HD; other repeat disorders have their own ranges and terms.',
+    refs: 'hut',
+  },
+  mioPredict: {
+    kicker: 'Repeat scroll · Prediction', title: 'Mio', label: 'Class prediction',
+    prompt: "Her father has 44 CAG repeats, with onset at 48. Mio's symptoms began at 29. Predict her repeat before you spend a seal.",
+    options: [
+      { t: 'Probably larger than 44: it tends to expand when a father passes it on, and earlier onset fits a longer one.' },
+      { t: "Exactly 44: she inherited her father's expanded allele, and an allele is copied unchanged from parent to child.",
+        no: "Not yet. Expanded CAG repeats are unstable in meiosis, especially in sperm. The copy she received can differ from her father's." },
+      { t: 'Probably smaller than 44: she is a woman, and the repeat contracts when a father passes it to a daughter.',
+        no: "Not yet. A father passing on an HD repeat tends to expand it, whatever the child's sex." },
+      { t: "Between 40 and 43: it must stay in the full-penetrance range, so it can only fall slightly below her father's.",
+        no: "Not yet. There is no ceiling on a repeat. It can grow well beyond the parent's count." },
+    ],
+    right: 'Larger than 44. Now test it with a seal.',
+  },
+  mioResult: {
+    kicker: 'Repeat scroll', title: 'Mio', label: 'Result',
+    prompt: "Mio's result: 18 and 52 CAG repeats. What does it mean?",
+    options: [
+      { t: 'It confirms HD in Mio. Repeat length predicts onset only loosely; each of her children has a 50% risk.' },
+      { t: 'It confirms HD in Mio. At 52 repeats onset is fixed at 29, which matches exactly what the family has observed.',
+        no: 'Not yet. Longer repeats tend to mean earlier onset, but the range is wide. A count never gives an exact age.' },
+      { t: 'It confirms HD in Mio. Her sister grew up in the same family, so she must carry an expanded allele as well.',
+        no: "Not yet. Each child of an affected parent inherits independently. Mio's result does not change her sister's risk." },
+      { t: 'It suggests HD in Mio, but her unaffected mother should be tested next to show which side it came from.',
+        no: 'Not yet. The tree already shows the paternal line, and her mother has no symptoms. Testing her would add nothing.' },
+    ],
+    right: "Prediction confirmed: 52 is larger than her father's 44. The falling ages at onset now have numbers behind them.",
+    refs: 'mio',
+  },
+  sisterRisk: {
+    kicker: 'Phenotype scroll', title: "Mio's sister", label: 'About 50%',
+    prompt: 'She is 28 with no symptoms. Her father is affected and Mio has 52 repeats. What is her chance of carrying an expanded allele?',
+    options: [
+      { t: "About 50%: Mio's positive result does not change it, and being well at 28 lowers it only slightly." },
+      { t: "Above 50%: Mio's positive test confirms the family allele, and that raises the risk to every sibling.",
+        no: "Not yet. Each child inherits independently. Mio's result confirms the family variant but leaves her sister's risk unchanged." },
+      { t: 'About 25%: only one parent is affected, and the risk is split between the two copies of the gene.',
+        no: 'Not yet. One affected parent with a dominant allele means a 50% chance for each child. 25% is the risk for a child of two recessive carriers.' },
+      { t: 'Close to zero: she is 28 with a normal examination, so she is most likely to be unaffected.',
+        no: "Not yet. Mio's onset was 29 and her father's 48. A normal examination at 28 excludes very little: she may be presymptomatic." },
+    ],
+    right: 'A normal examination does not exclude the allele, so she may be presymptomatic. Only predictive testing could tell her, and it must not be rushed.',
+    refs: 'sister',
+  },
+  sisterCounsel: {
+    kicker: 'Counselling scroll', title: "Mio's sister", label: 'Predictive testing',
+    prompt: 'She asks you to test her today. What do you do?',
+    options: [
+      { t: 'Refer her to a predictive-testing clinic: counselling first, then time to decide. The choice is hers.' },
+      { t: 'Send the test today: she is a competent adult who is asking for it, and waiting only adds to her anxiety.',
+        no: 'Not yet. Her request matters, but predictive HD testing goes through pre-test counselling, time to reflect and informed consent. A result cannot be taken back.' },
+      { t: 'Advise against testing: HD has no cure, so knowing the result cannot change anything for her.',
+        no: 'Not yet. That is her decision, not ours. Many people test to plan their lives, work or families; others choose not to know.' },
+      { t: 'Test her, but give the result to her father first: as the affected parent, he has a right to know.',
+        no: 'Not yet. Her result belongs to her. Disclosing it without her consent breaches confidentiality.' },
+    ],
+    right: 'Predictive testing is offered through a counselling protocol over time, with informed consent. She may also choose not to know.',
+  },
+  shrine: {
+    kicker: 'Diagnosis Shrine', title: 'One statement holds no error', label: 'Diagnosis', tall: true,
+    prompt: 'Three of these statements contain one error each. Which one is correct throughout?',
+    options: [
+      { t: "Mio has HD from a CAG expansion in HTT, inherited autosomal dominantly from her father. Her earlier onset reflects paternal anticipation. Her sister's risk is 50%, and counselling comes before any test." },
+      { t: "Mio has HD from a CAG expansion in HTT, inherited autosomal dominantly from her father. Her earlier onset reflects maternal anticipation. Her sister's risk is 50%, and counselling comes before any test.",
+        no: 'Not yet. That statement names the wrong parent. Who passed the gene to Mio, and to her father?' },
+      { t: "Mio has HD from a CAG expansion in HTT, inherited X-linked from her father. Her earlier onset reflects paternal anticipation. Her sister's risk is 50%, and counselling comes before any test.",
+        no: 'Not yet. That statement has the wrong inheritance pattern. The grandfather passed it to his son.' },
+      { t: "Mio has HD from a CAG expansion in HTT, inherited autosomal dominantly from her father. Her earlier onset reflects paternal anticipation. Her sister's risk is now above 50%, and counselling comes before any test.",
+        no: "Not yet. That statement inflates the sister's risk. Mio's result does not change it." },
+    ],
+    right: 'Huntington disease: CAG expansion in HTT, autosomal dominant, with paternal anticipation. Her sister has a 50% risk and is offered counselling, not a test today.',
+    refs: 'shrine',
+  },
+};
+
+// Gates: clinical and pedigree clues only. The repeat and gene appear once the gate opens.
+const GATES = [
+  { name: 'The dancer', clues: ['Chorea', 'Depression', 'Cognitive decline from age 40', 'His father had the same illness, starting at 60'], answer: 0,
+    summary: 'Huntington disease: CAG in HTT, autosomal dominant. Anticipation comes mainly through the father.',
+    wrong: { 1: 'Not yet. DM1 causes myotonia and cataracts, not chorea.', 2: 'Not yet. Fragile X shows in childhood with intellectual disability. It does not cause adult-onset chorea.', 3: 'Not yet. Friedreich ataxia causes ataxia, not chorea, and it is recessive. Here a father passed it to his son.' } },
+  { name: 'The locked handshake', clues: ['Delayed muscle relaxation', 'Cataracts', 'Cardiac conduction abnormality', 'Frontal balding', 'Her baby was born floppy and needed help to breathe'], answer: 1,
+    summary: 'Myotonic dystrophy type 1: CTG in DMPK, autosomal dominant. Its anticipation comes mainly through the mother, as congenital DM1. Myotonia and cataracts are not Huntington disease.',
+    wrong: { 0: 'Not yet. Myotonia, cataracts and conduction disease are not features of HD. Note too that the mother passed it on here.', 2: 'Not yet. Fragile X does not cause myotonia, cataracts or conduction disease.', 3: 'Not yet. Friedreich ataxia can affect the heart, but not with myotonia or cataracts, and it is recessive.' } },
+  { name: 'The long-faced youth', clues: ['Intellectual disability', 'Long face', 'Large testes after puberty', 'Joint hypermobility', 'Mother had menopause at 38; her father developed a tremor in his 60s'], answer: 2,
+    summary: 'Fragile X syndrome: CGG in FMR1, X-linked. A premutation in the mother (early menopause) and her father (late-onset tremor) expanded to a full mutation in her son.',
+    wrong: { 0: 'Not yet. HD is adult-onset and does not cause childhood intellectual disability or large testes.', 1: "Not yet. Congenital DM1 can cause learning disability, but large testes and the mother's early menopause point elsewhere.", 3: 'Not yet. Friedreich ataxia does not cause intellectual disability. Look at the maternal line.' } },
+  { name: 'The unsteady walker', clues: ['Ataxia', 'Dysarthria', 'Kyphoscoliosis', 'Hypertrophic cardiomyopathy', 'Parents are first cousins and both well; a brother is affected'], answer: 3,
+    summary: 'Friedreich ataxia: GAA in FXN, autosomal recessive. Not every repeat disorder is dominant, and this one does not show anticipation.',
+    wrong: { 0: 'Not yet. Well, related parents and an affected sibling suggest recessive inheritance. HD is dominant.', 1: 'Not yet. DM1 is dominant, and here both parents are well.', 2: 'Not yet. Fragile X is X-linked and causes intellectual disability. This is progressive ataxia with cardiomyopathy.' } },
+];
+const GATE_SHARED = 'Shared by all four: an unstable repeat expansion. They differ in sequence, gene, inheritance and phenotype.';
+
+// Progress: four scrolls. A scroll fills when its questions are answered, and
+// turns gold if every one was right first time.
+const SCROLLS = [
+  ['Inheritance', ['stone', 'board']],
+  ['Phenotype', ['father', 'sisterRisk']],
+  ['Repeat', ['hutSort', 'hut36', 'mioPredict', 'mioResult']],
+  ['Counselling', ['sisterCounsel']],
+];
+const STOP_QUIZZES = {
+  stone: ['stone'], board: ['board'], father: ['father'], hut: ['hutSort', 'hut36'],
+  mio: ['mioPredict', 'mioResult'], sister: ['sisterRisk', 'sisterCounsel'],
+};
+
+const MAIN_PATH = ['stone', 'board', 'father', 'hut', 'mio', 'sister', 'gate0', 'gate1', 'gate2', 'gate3', 'shrine'];
+const HINTS = {
+  stone: "Inheritance: read the grandfather's memorial stone.",
+  board: 'Inheritance: question the family tree on the noticeboard.',
+  father: "Phenotype: compare Mio's father with the grandfather.",
+  hut: "Repeat: sort the CAG counts at the healer's hut.",
+  mio: "Repeat: predict Mio's repeat, then test it.",
+  sister: "Counselling: Mio's sister has a question.",
+  gate0: 'Compare: Gate 1, The dancer.',
+  gate1: 'Compare: Gate 2, The locked handshake.',
+  gate2: 'Compare: Gate 3, The long-faced youth.',
+  gate3: 'Compare: Gate 4, The unsteady walker.',
+  shrine: 'The Diagnosis Shrine is open.',
+  done: 'Mission complete. The village is saved.',
+};
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let S;
+function shuffled(list) {
+  const isSame = (r) => r.every((v, i) => v === list[i]);
+  let r;
+  do {
+    r = list.slice();
+    for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+  } while (r.length > 1 && isSame(r));
+  return r;
+}
+const orderOf = (n) => shuffled([...Array(n).keys()]);
+function freshState() {
+  const npc = {};
+  for (const k of Object.keys(LAYOUT.actors)) npc[k] = { x: LAYOUT.actors[k][0], y: LAYOUT.actors[k][1], tx: null, ty: null, dir: 0, t: 0 };
+  return {
+    phase: 'title',
+    seals: 3,
+    visited: {}, done: {}, predicted: {}, tested: {},
+    quizDone: {}, firstTry: {}, quizOrder: {},
+    gates: [false, false, false, false],
+    challenge: { place: { A: null, B: null, C: null, D: null, E: null, F: null }, checked: false, marks: null, passed: false, sel: null },
+    people: shuffled(HUT_CAGS).map(([n, cat], i) => ['ABCDEF'[i], n, cat]),
+    gateOrder: GATES.map(() => orderOf(DISORDERS.length)),
+    shrineForced: false, shrineSolved: false, ended: false,
+    board: {},
+    av: { x: LAYOUT.start[0], y: LAYOUT.start[1], dir: 0, t: 0, moving: false, z: 0, jt: -1 },
+    dust: [], camFocus: null,
+    walk: null, pending: null, insideBoard: false,
+    npc,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Assets
+// ---------------------------------------------------------------------------
+const IMG = {}, SIL = {};
+function loadImages(done) {
+  const jobs = [];
+  for (const [k, src] of Object.entries(ASSETS.img)) jobs.push([k, src]);
+  for (const [n, a] of Object.entries(ASSETS.chars)) {
+    jobs.push(['sheet:' + n, a.sheet]);
+    if (a.jump) jobs.push(['jump:' + n, a.jump]);
+  }
+  let left = jobs.length;
+  for (const [k, src] of jobs) {
+    const im = new Image();
+    im.onload = im.onerror = () => { if (--left === 0) done(); };
+    im.src = src;
+    IMG[k] = im;
+  }
+}
+function silhouette(img) {
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const x = c.getContext('2d');
+  x.drawImage(img, 0, 0);
+  x.globalCompositeOperation = 'source-in';
+  x.fillStyle = '#1A1A1A';
+  x.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+function sheetOf(role) { return ROLES[role].sprite; }
+function faceSrc(role) { const a = ASSETS.chars[ROLES[role].portrait]; return a ? a.face : ''; }
+
+// ---------------------------------------------------------------------------
+// DOM helpers
+// ---------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+const stage = $('stage'), cv = $('cv'), ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  return e;
+}
+function btn(label, onClick, opts = {}) {
+  const b = h('button', { class: 'btn' + (opts.secondary ? ' secondary' : ''), tabindex: '-1' }, h('span', { class: 'fill' }), h('span', { style: 'position:relative' }, label));
+  if (opts.primary) b.setAttribute('data-primary', '');
+  if (opts.disabled) b.disabled = true;
+  b.addEventListener('click', (e) => { e.currentTarget.blur(); if (!b.disabled) onClick(); });
+  if (opts.delay) delayEnable(b, opts.delay);
+  return b;
+}
+function refsRow(list) {
+  if (!list || !list.length) return null;
+  return h('div', { class: 'refs' }, h('span', { class: 'lbl px' }, 'Read more'),
+    list.map((r) => h('a', { class: 'ref', href: r.url, target: '_blank', rel: 'noopener noreferrer', tabindex: '-1', title: r.cite, onclick: (e) => e.currentTarget.blur() },
+      h('b', { class: 'px' }, r.tag), h('span', null, r.title))));
+}
+function delayEnable(b, ms) {
+  b.disabled = true;
+  requestAnimationFrame(() => requestAnimationFrame(() => b.classList.add('go')));
+  setTimeout(() => { b.disabled = false; }, ms);
+}
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.remove('hidden'); t.style.opacity = '1';
+  clearTimeout(toast.tm);
+  toast.tm = setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 450); }, 2600);
+}
+function spriteCanvas(img, sx, sy, sw, sh, cls) {
+  const side = Math.max(sw, sh) + 4;
+  const c = h('canvas', { class: cls || 'portrait light', width: side, height: side });
+  const x = c.getContext('2d');
+  x.imageSmoothingEnabled = false;
+  x.drawImage(img, sx, sy, sw, sh, (side - sw) >> 1, (side - sh) >> 1, sw, sh);
+  return c;
+}
+
+// ---------------------------------------------------------------------------
+// Modal and flow engine
+// ---------------------------------------------------------------------------
+const modal = $('modal'), caption = $('caption');
+let flow = null;
+function showModal(nodes, tall) {
+  modal.replaceChildren(...nodes.filter((n) => n != null && n !== false));
+  modal.classList.toggle('tall', !!tall);
+  modal.classList.remove('hidden');
+  modal.scrollTop = 0;
+  modal.classList.remove('cardin');
+  void modal.offsetWidth;                 // restart the entry animation
+  modal.classList.add('cardin');
+  if (S.phase !== 'ending') S.phase = 'modal';
+  clearKeys();
+  updateHUD();
+}
+function closeModal() {
+  modal.classList.add('hidden');
+  modal.replaceChildren();
+  if (S.phase === 'modal') S.phase = 'explore';
+  updateHUD();
+}
+function runFlow(steps, onDone) {
+  flow = { steps: steps.filter(Boolean), i: -1, onDone };
+  nextStep();
+}
+function nextStep() {
+  if (!flow) return;
+  flow.i++;
+  if (flow.i >= flow.steps.length) {
+    const d = flow.onDone; flow = null; closeModal(); if (d) d(); updateHUD(); return;
+  }
+  flow.steps[flow.i]();
+}
+function header(kicker, title, sub) {
+  return [kicker ? h('div', { class: 'kicker px' }, kicker) : null, h('div', { class: 'title px' }, title), sub ? h('div', { class: 'sub' }, sub) : null];
+}
+function portraitFor(id) {
+  const c = CHARS[id];
+  if (c && c.portraitImg) { const im = IMG[c.portraitImg]; return spriteCanvas(im, 0, 0, im.width, im.height, 'portrait light'); }
+  const role = id === 'hut' ? 'healer' : id;
+  return h('img', { class: 'portrait', src: faceSrc(role), alt: '' });
+}
+function silhouetteFor(id) {
+  if (id === 'stone') { const s = SIL.memorial; return spriteCanvas(s, 0, 0, s.width, s.height, 'sil'); }
+  const s = SIL[sheetOf(id)];
+  return spriteCanvas(s, 0, 0, 16, 16, 'sil');
+}
+function nameLine(c) { return c.age ? c.name + ', ' + c.age : c.name; }
+
+// --- character visit --------------------------------------------------------
+function visitCharacter(id) {
+  const c = CHARS[id];
+  const steps = [];
+  if (!S.predicted[id]) steps.push(() => stepPredict(id));
+  steps.push(() => stepReveal(id));
+  if (STOP_QUIZZES[id]) steps.push(...coreSteps(id));
+  else {
+    if (c.test && !S.tested[id]) steps.push(() => stepTest(id));
+    steps.push(() => stepExplain(nameLine(c), c.explain, null, REFS[id]));
+  }
+  runFlow(steps, () => { S.done[id] = true; });
+}
+// The questions still open at a core stop, in order. A stop whose clue has not
+// been earned yet (c.lock) shows only its clue card.
+function coreSteps(id) {
+  const c = CHARS[id];
+  if (c.lock && c.lock()) return [];
+  const q = (qid) => (S.quizDone[qid] ? null : () => stepQuiz(qid));
+  if (id === 'mio') return [
+    q('mioPredict'),
+    S.tested.mio ? null : () => stepTest('mio'),
+    () => (S.tested.mio && !S.quizDone.mioResult ? stepQuiz('mioResult') : nextStep()),
+  ];
+  if (id === 'sister') return [q('sisterRisk'), q('sisterCounsel'), S.quizDone.sisterCounsel ? null : () => showCounselling('sister')];
+  return STOP_QUIZZES[id].map(q);
+}
+function stepPredict(id) {
+  const c = CHARS[id];
+  S.predicted[id] = true;
+  showModal([
+    ...header('Predict', 'Before we meet: ' + nameLine(c)),
+    h('div', { class: 'body' }, h('div', { class: 'row' }, silhouetteFor(id), h('div', null,
+      h('p', { class: 'prompt-q' }, 'Make a prediction:'),
+      h('ul', { class: 'dims' }, c.predict.map((d) => h('li', null, d)))))),
+    h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true, delay: 2000 })),
+  ]);
+}
+function stepReveal(id) {
+  const c = CHARS[id];
+  if (!S.visited[id]) { S.visited[id] = true; if (c.onReveal) c.onReveal(); }
+  const kids = [h('ul', { class: 'find' }, c.findings.map((f) => h('li', null, f)))];
+  if (S.tested[id] && c.test.type === 'seal') kids.push(h('div', { class: 'result' }, h('span', { class: 'k' }, c.test.name), c.test.result));
+  if (S.tested[id] && c.test.type === 'declined') kids.push(h('div', { class: 'feedback' }, c.test.result));
+  if (c.lab && S.board[c.lab.flag]) kids.push(h('div', { class: 'result' }, h('span', { class: 'k' }, c.lab.name), c.lab.result));
+  if (c.note) kids.push(h('div', { class: 'note' }, c.note));
+  const locked = c.lock && c.lock();
+  if (locked) kids.push(h('div', { class: 'note' }, locked));
+  showModal([
+    h('div', { class: 'row body' }, portraitFor(id), h('div', { style: 'flex:1' }, ...header('Clue card', c.name, c.sub ? c.sub + (c.age ? ' · Age ' + c.age : '') : (c.age.startsWith('Died') ? c.age : 'Age ' + c.age)), ...kids)),
+    h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+// One forced choice. Wrong options stay marked and explain their error;
+// Continue unlocks on the right one. The first click is recorded for the scrolls.
+function stepQuiz(qid) {
+  const q = QUIZ[qid];
+  const order = S.quizOrder[qid] || (S.quizOrder[qid] = orderOf(q.options.length));
+  const fb = h('div');
+  const refs = q.refs ? refsRow(REFS[q.refs]) : null;
+  if (refs) refs.classList.add('hidden');
+  const cont = btn('Continue', nextStep, { primary: true, disabled: true });
+  const opts = q.options.map((o, j) => h('button', {
+    class: 'opt', tabindex: '-1', onclick: (e) => {
+      e.currentTarget.blur();
+      if (S.firstTry[qid] === undefined) S.firstTry[qid] = j === 0;
+      if (j === 0) {
+        S.quizDone[qid] = true;
+        opts.forEach((b, k) => { b.disabled = true; b.classList.toggle('right', k === 0); });
+        fb.replaceChildren(h('div', { class: 'result' }, h('span', { class: 'k' }, q.label), q.right));
+        if (refs) refs.classList.remove('hidden');
+        cont.disabled = false;
+        updateHUD();
+      } else {
+        e.currentTarget.classList.add('tried');
+        fb.replaceChildren(h('div', { class: 'feedback' }, o.no));
+      }
+    },
+  }, o.t));
+  showModal([
+    ...header(q.kicker, q.title),
+    h('div', { class: 'body' }, h('p', { class: 'prompt-q' }, q.prompt), h('div', { class: 'opts one' }, order.map((j) => opts[j])), fb),
+    h('div', { class: 'btns' }, refs, cont),
+  ], q.tall);
+}
+// Console check for the answer-length tell: the right option should not
+// usually be the longest one.
+function quizAudit() {
+  const ids = Object.keys(QUIZ);
+  const longest = ids.filter((id) => { const L = QUIZ[id].options.map((o) => o.t.length); return L[0] === Math.max(...L); });
+  const msg = 'Quiz audit: the correct option is the longest in ' + longest.length + ' of ' + ids.length + (longest.length ? ' (' + longest.join(', ') + ')' : '');
+  if (longest.length * 2 > ids.length) console.warn(msg); else console.info(msg);
+}
+function stepTest(id) {
+  const c = CHARS[id], t = c.test;
+  const bodyKids = [h('p', { class: 'big-q' }, 'What question will this test answer?'), h('p', null, 'Test: ' + t.name)];
+  let main;
+  if (t.type === 'seal') {
+    bodyKids.push(h('p', { style: 'color:var(--sage)' }, 'Seals remaining: ' + S.seals + ' of 3'));
+    main = S.seals > 0
+      ? btn('Use a seal', () => { S.seals--; S.tested[id] = true; if (c.onTest) c.onTest(); updateHUD(); showTestResult(id); })
+      : btn('No seals left', () => {});
+  } else if (t.type === 'declined') {
+    main = btn(t.button, () => { S.tested[id] = true; showDeclined(id); });
+  } else {
+    main = btn(t.button, () => showCounselling(id));
+  }
+  showModal([
+    ...header('Test', nameLine(c)),
+    h('div', { class: 'body' }, ...bodyKids),
+    h('div', { class: 'btns' }, btn('Not now', nextStep, { secondary: true }), main),
+  ]);
+}
+function showTestResult(id) {
+  const c = CHARS[id];
+  showModal([
+    ...header('Test result', nameLine(c)),
+    h('div', { class: 'body' }, h('div', { class: 'result' }, h('span', { class: 'k' }, c.test.name), c.test.result)),
+    h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+function showDeclined(id) {
+  const c = CHARS[id];
+  showModal([
+    ...header('Test', nameLine(c)),
+    h('div', { class: 'body' }, h('div', { class: 'feedback' }, c.test.result), h('p', { style: 'color:var(--sage)' }, 'No seal was used.')),
+    h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+function showCounselling(id) {
+  showModal([
+    ...header('Genetic counselling', nameLine(CHARS[id])),
+    h('div', { class: 'body' },
+      h('p', { class: 'prompt-q' }, 'Before any predictive test:'),
+      h('ul', { class: 'find' }, ['Genetic counselling', 'Discussion of possible results', 'Psychological and family implications', 'Informed consent', 'Whether she is ready to know'].map((s) => h('li', null, s))),
+      h('div', { class: 'feedback' }, 'Predictive testing is offered through genetic counselling over time, not as a quick test in the village today.'),
+      h('p', { style: 'color:var(--sage)' }, 'No seal was used.')),
+    h('div', { class: 'btns' }, refsRow([SRC.ehdnTest, SRC.hdaGuide]), btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+function stepExplain(title, entries, note, refs) {
+  const list = entries.map((en) => {
+    const tp = h('div', { class: 'tp hidden' }, en.a);
+    const b = h('button', { class: 'tpbtn', tabindex: '-1', onclick: (e) => { e.currentTarget.blur(); tp.classList.remove('hidden'); b.classList.add('hidden'); } },
+      'Show teaching point');
+    return h('div', { class: 'entry' }, h('div', { class: 'q' }, en.q || 'Key teaching point'), b, tp);
+  });
+  showModal([
+    ...header('Explain', title),
+    h('div', { class: 'body' }, h('p', { class: 'big-q' }, 'Which part of our prediction was supported, and which part needs revision?'), ...list, note ? h('div', { class: 'note' }, note) : null),
+    h('div', { class: 'btns' }, refsRow(refs), btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+// --- healer's hut: CAG scale challenge --------------------------------------
+function visitHut() {
+  S.visited.healer = true;
+  runFlow([
+    () => stepChallenge(),
+    S.quizDone.hut36 ? null : () => stepQuiz('hut36'),
+    () => (S.quizDone.hut36 && !S.board.fatherCag ? stepLab() : nextStep()),
+  ], () => { S.done.hut = true; });
+}
+// The healer hands over the father's result, so the class meets 44 only after
+// reasoning from the ages.
+function stepLab() {
+  S.board.fatherCag = true;
+  showModal([
+    ...header("Healer's hut", 'A result from the city laboratory'),
+    h('div', { class: 'body' },
+      h('p', { class: 'prompt-q' }, "Mio's father gave a blood sample at his own clinic last year. The result has just arrived."),
+      h('div', { class: 'result' }, h('span', { class: 'k' }, CHARS.father.lab.name), CHARS.father.lab.result),
+      h('div', { class: 'note' }, 'The family tree now shows 44 beside him. Before spending a seal on Mio, predict her count.')),
+    h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+function stepChallenge() {
+  const ch = S.challenge, PEOPLE = S.people;
+  const dragChip = (e, k) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const src = e.currentTarget, sx = e.clientX, sy = e.clientY;
+    let ghost = null, over = null, ox = 0, oy = 0;
+    const dropAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest('#modal .col, #modal .tray'); };
+    const move = (ev) => {
+      if (!ghost) {
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+        const r = src.getBoundingClientRect(), cs = getComputedStyle(src);
+        ox = sx - r.left; oy = sy - r.top;
+        ghost = src.cloneNode(true);
+        ghost.classList.remove('sel');
+        ghost.classList.add('ghost');
+        Object.assign(ghost.style, { width: r.width + 'px', fontSize: cs.fontSize, fontFamily: cs.fontFamily });
+        document.getElementById('stage').append(ghost);
+        src.classList.add('dragging');
+      }
+      ghost.style.left = ev.clientX - ox + 'px';
+      ghost.style.top = ev.clientY - oy + 'px';
+      const t = dropAt(ev.clientX, ev.clientY);
+      if (t !== over) { if (over) over.classList.remove('over'); over = t; if (over) over.classList.add('over'); }
+    };
+    const end = (ev, drop) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('blur', cancel);
+      if (!ghost) return;
+      ghost.remove();
+      if (!modal.contains(src)) return;
+      ch.dragged = true;
+      setTimeout(() => { ch.dragged = false; }, 0);
+      const t = drop ? dropAt(ev.clientX, ev.clientY) : null;
+      if (t) { ch.place[k] = t.dataset.ci == null ? null : +t.dataset.ci; ch.sel = null; ch.marks = null; }
+      render();
+    };
+    const up = (ev) => end(ev, true);
+    const cancel = (ev) => end(ev, false);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('blur', cancel);
+  };
+  const render = () => {
+    const chip = (p) => {
+      const [k, n] = p;
+      const mark = ch.marks && ch.place[k] != null ? (ch.marks[k] ? '✓' : '✗') : '';
+      const cls = 'chip' + (ch.sel === k ? ' sel' : '') + (mark === '✓' ? ' ok' : mark === '✗' ? ' no' : '');
+      return h('button', {
+        class: cls, tabindex: '-1',
+        onpointerdown: (e) => dragChip(e, k),
+        onclick: (e) => { e.stopPropagation(); e.currentTarget.blur(); if (ch.dragged) return; ch.sel = ch.sel === k ? null : k; render(); },
+      }, k + ' · ' + n + ' CAG', mark ? h('span', { class: 'mk' }, mark) : null);
+    };
+    const tray = h('div', { class: 'tray' + (ch.sel && ch.place[ch.sel] != null ? ' target' : ''), onclick: () => { if (ch.sel) { ch.place[ch.sel] = null; ch.sel = null; ch.marks = null; render(); } } },
+      h('span', { class: 'lbl' }, 'To place:'), PEOPLE.filter((p) => ch.place[p[0]] == null).map(chip));
+    const cols = h('div', { class: 'cols' }, CATS.map((cat, ci) => h('div', {
+      class: 'col' + (ch.sel ? ' target' : ''), 'data-ci': String(ci), onclick: () => { if (ch.sel) { ch.place[ch.sel] = ci; ch.sel = null; ch.marks = null; render(); } },
+    }, h('h4', null, cat), ch.checked ? h('span', { class: 'range' }, RANGES[ci]) : null, PEOPLE.filter((p) => ch.place[p[0]] === ci).map(chip))));
+    const allPlaced = PEOPLE.every((p) => ch.place[p[0]] != null);
+    let res = null;
+    if (ch.marks) {
+      const n = PEOPLE.filter((p) => ch.marks[p[0]]).length;
+      res = h('div', { class: 'feedback' }, n >= HUT_PASS ? 'All 6 correct.' : n + ' of 6 correct. Every boundary counts: look again at the marked people, move them, and check again.');
+    }
+    const check = btn('Check', () => {
+      ch.checked = true; ch.marks = {};
+      for (const [k, , ans] of PEOPLE) ch.marks[k] = ch.place[k] === ans;
+      const allRight = PEOPLE.filter((p) => ch.marks[p[0]]).length >= HUT_PASS;
+      if (S.firstTry.hutSort === undefined) S.firstTry.hutSort = allRight;
+      if (allRight) { ch.passed = true; S.quizDone.hutSort = true; updateHUD(); }
+      render();
+    }, { secondary: ch.passed, disabled: !allPlaced });
+    const cont = btn('Continue', nextStep, { primary: true, disabled: !(ch.passed && ch.marks && PEOPLE.filter((p) => ch.marks[p[0]]).length >= HUT_PASS) });
+    showModal([
+      h('div', { class: 'row', style: 'gap:calc(var(--u)*4);align-items:center;margin-bottom:calc(var(--u)*2)' },
+        h('img', { class: 'portrait', src: faceSrc('healer'), alt: '', style: 'width:calc(var(--u)*17);height:calc(var(--u)*17)' }),
+        h('div', null, ...header("Healer's hut", 'CAG scale challenge'), h('div', { style: 'margin-top:calc(var(--u)*-1.6)' }, 'Drag each person into their HD allele category. Every count sits on a boundary, so all six must be right.'))),
+      h('div', { class: 'body' }, tray, cols, res),
+      h('div', { class: 'btns' }, check, cont),
+    ]);
+  };
+  render();
+}
+
+// --- noticeboard pedigree ----------------------------------------------------
+function pedigreeSVG(complete) {
+  const B = S.board;
+  const NS = 'http://www.w3.org/2000/svg';
+  const s = (tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
+  const svg = s('svg', { viewBox: '0 0 1000 600', class: 'ped', preserveAspectRatio: 'xMidYMid meet' });
+  const pine = '#1C3B2E', sage = '#5B7F6E', amber = '#C08A3E', off = '#F7F5F0';
+  const line = (x1, y1, x2, y2) => svg.append(s('line', { x1, y1, x2, y2, stroke: pine, 'stroke-width': 5 }));
+  const node = (shape, x, y, known, affected) => {
+    const st = { stroke: known ? pine : sage, 'stroke-width': 5, fill: known ? (affected ? pine : off) : off };
+    if (!known) st['stroke-dasharray'] = '10 8';
+    svg.append(shape === 'sq' ? s('rect', { x: x - 32, y: y - 32, width: 64, height: 64, ...st }) : s('circle', { cx: x, cy: y, r: 33, ...st }));
+    if (!known) svg.append(s('text', { x, y: y + 13, 'text-anchor': 'middle', 'font-size': 38, fill: sage, 'font-weight': 700 }, '?'));
+  };
+  const label = (x, y, anchor, lines) => {
+    lines.forEach((ln, i) => {
+      if (!ln) return;
+      const [txt, kind] = Array.isArray(ln) ? ln : [ln, i === 0 ? 'name' : 'det'];
+      const t = s('text', { x, y: y + i * 38, 'text-anchor': anchor, 'font-size': kind === 'name' ? 33 : 30, 'font-weight': kind === 'name' || kind === 'cag' ? 700 : 400, fill: kind === 'cag' ? '#7A5420' : kind === 'unk' ? sage : '#1A1A1A' }, txt);
+      if (kind === 'cag') {
+        const w = txt.length * 17 + 24;
+        const bx = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x - 12;
+        svg.append(s('rect', { x: bx, y: y + i * 38 - 28, width: w, height: 38, rx: 7, fill: amber }));
+        t.setAttribute('fill', '#1A1A1A');
+        if (anchor === 'start') t.setAttribute('x', x);
+        if (anchor === 'end') t.setAttribute('x', x - 12);
+      }
+      svg.append(t);
+    });
+  };
+  const all = complete;
+  const gf = all || B.grandfather || B.grandfatherHint, gm = all || B.grandmother, fa = all || B.father, mi = all || B.mio, si = all || B.sister;
+  // generation labels
+  [['I', 80], ['II', 300], ['III', 470]].forEach(([g, y]) => svg.append(s('text', { x: 40, y: y + 12, 'font-size': 34, 'font-weight': 700, fill: sage }, g)));
+  // lines: grandparents' couple line, down to their son, his couple line with
+  // Mio's mother, and the sibship line down to Mio and her sister
+  line(312, 80, 688, 80); line(500, 80, 500, 228); line(390, 228, 500, 228); line(390, 228, 390, 268);
+  line(422, 300, 577, 300); line(500, 300, 500, 400);
+  line(280, 400, 720, 400); line(280, 400, 280, 437); line(720, 400, 720, 437);
+  node('sq', 280, 80, gf, gf);
+  node('ci', 720, 80, gm, false);
+  node('sq', 390, 300, fa, fa);
+  node('ci', 610, 300, true, false);
+  node('ci', 280, 470, mi, mi);
+  node('ci', 720, 470, si, false);
+  label(280, 148, 'middle', gf ? ['Grandfather', (all || B.grandfather) ? 'Onset about 68; died aged 72' : 'Similar illness'] : [['Grandfather', 'name'], ['Not yet found', 'unk']]);
+  label(720, 148, 'middle', gm ? ['Grandmother, 82', 'Married in; unaffected'] : [['Grandmother', 'name'], ['Not yet found', 'unk']]);
+  label(340, 268, 'end', fa ? ["Mio's father, 58", 'Onset 48', (all || B.fatherCag) ? ['44 CAG', 'cag'] : ['CAG not yet tested', 'unk']] : [["Mio's father", 'name'], ['Not yet found', 'unk']]);
+  label(660, 290, 'start', ["Mio's mother, 55", 'Married in', 'No symptoms']);
+  label(280, 538, 'middle', mi ? ['Mio, 32', 'Onset 29', null] : [['Mio', 'name'], ['Not yet found', 'unk']]);
+  if (mi) label(110, 470, 'start', (all || B.mioCag) ? [['52 CAG', 'cag']] : [['Not tested', 'unk']]);
+  label(720, 538, 'middle', si ? ["Mio's sister, 28", 'Unaffected; at risk'] : [["Mio's sister", 'name'], ['Not yet found', 'unk']]);
+  return svg;
+}
+function boardNodes(complete) {
+  const B = S.board;
+  const extra = [];
+  if (complete || B.onsets) extra.push(h('div', { class: 'note', style: 'margin-top:0' }, 'Age at onset by generation: 68 -> 48 -> 29.'));
+  if (complete) extra.push(h('div', { class: 'result', style: 'margin:calc(var(--u)*1.5) 0 0' }, 'Huntington disease: autosomal dominant, CAG repeat expansion in HTT.'));
+  return [
+    ...header('Noticeboard', complete ? 'Family tree: complete' : 'Family tree'),
+    pedigreeSVG(complete),
+    ...extra,
+    h('div', { class: 'legend' }, h('span', null, '■ ● filled: affected'), h('span', null, '□ ○ open: unaffected'), h('span', null, 'Dashed: not yet found')),
+  ];
+}
+function visitBoard() {
+  const ask = !S.quizDone.board && S.quizDone.stone;
+  const wait = !S.quizDone.board && !S.quizDone.stone ? h('div', { class: 'note' }, 'Read the memorial stone first, then come back and question the tree.') : null;
+  runFlow([
+    () => showModal([...boardNodes(false), wait, h('div', { class: 'btns' }, btn(ask ? 'Question the tree' : 'Close', nextStep, { primary: true }))], true),
+    ask ? () => stepQuiz('board') : null,
+  ]);
+}
+
+// --- gates -------------------------------------------------------------------
+function visitGate(i) {
+  runFlow([() => stepGate(i)]);
+}
+function stepGate(i) {
+  const g = GATES[i];
+  const fb = h('div');
+  const cont = btn('Continue', nextStep, { primary: true, disabled: !S.gates[i] });
+  const refs = refsRow(REFS.gates[i]);
+  refs.classList.add('hidden');
+  const opened = () => { fb.replaceChildren(h('div', { class: 'result' }, h('span', { class: 'k' }, 'The gate opens'), g.summary), h('div', { class: 'note' }, GATE_SHARED)); refs.classList.remove('hidden'); };
+  const opts = DISORDERS.map((d, j) => h('button', {
+    class: 'opt' + (S.gates[i] && j === g.answer ? ' right' : ''), tabindex: '-1', disabled: S.gates[i] ? true : false,
+    onclick: (e) => {
+      e.currentTarget.blur();
+      if (S.firstTry['gate' + i] === undefined) S.firstTry['gate' + i] = j === g.answer;
+      if (j === g.answer) {
+        S.gates[i] = true;
+        opts.forEach((b, k) => { b.disabled = true; b.classList.toggle('right', k === j); });
+        opened(); cont.disabled = false; updateHUD();
+      } else {
+        e.currentTarget.classList.add('tried');
+        fb.replaceChildren(h('div', { class: 'feedback' }, g.wrong[j]));
+      }
+    },
+  }, d));
+  if (S.gates[i]) opened();
+  showModal([
+    ...header('Gate ' + (i + 1), g.name),
+    h('div', { class: 'body' },
+      h('div', { class: 'row', style: 'gap:calc(var(--u)*8)' },
+        h('ul', { class: 'find', style: 'flex:1' }, g.clues.map((c) => h('li', null, c))),
+        h('div', { style: 'flex:1.3' }, h('p', { class: 'prompt-q', style: 'margin-top:0' }, 'Which disorder opens this gate?'), h('div', { class: 'opts one' }, S.gateOrder[i].map((j) => opts[j])))),
+      fb),
+    h('div', { class: 'btns' }, refs, cont),
+  ]);
+}
+
+// --- shrine ------------------------------------------------------------------
+function scrollState(qs) {
+  if (!qs.every((q) => S.quizDone[q])) return 0;
+  return qs.every((q) => S.firstTry[q]) ? 2 : 1;
+}
+function shrineReqs() {
+  return [
+    ...SCROLLS.map(([n, qs]) => [n + ' scroll', scrollState(qs) > 0]),
+    ['Gate 1', S.gates[0]], ['Gate 2', S.gates[1]], ['Gate 3', S.gates[2]], ['Gate 4', S.gates[3]],
+  ];
+}
+function shrineOpen() { return S.shrineForced || shrineReqs().every((r) => r[1]); }
+function visitShrine() {
+  if (S.shrineSolved) {
+    runFlow([() => stepScroll(false), () => stepFinal()]);
+    return;
+  }
+  if (!shrineOpen()) {
+    runFlow([() => showModal([
+      ...header('Diagnosis Shrine', 'The shrine is still sealed'),
+      h('div', { class: 'body' }, h('p', { class: 'prompt-q' }, 'It opens once these are done:'),
+        h('ul', { class: 'find', style: 'columns:2' }, shrineReqs().map(([n, ok]) => h('li', { style: ok ? 'color:var(--sage)' : '' }, (ok ? '✓ ' : '') + n)))),
+      h('div', { class: 'btns' }, btn('Continue', nextStep, { primary: true })),
+    ])]);
+    return;
+  }
+  runFlow([S.quizDone.shrine ? null : () => stepQuiz('shrine'), () => stepShrineSummary()], () => { S.shrineSolved = true; startEnding(); });
+}
+// First-attempt tally across every question and gate the class answered.
+function firstTryTally() {
+  const v = Object.values(S.firstTry);
+  return [v.filter(Boolean).length, v.length];
+}
+function stepShrineSummary() {
+  const [right, all] = firstTryTally();
+  showModal([
+    ...header('Diagnosis Shrine', 'The case is solved'),
+    h('div', { class: 'body' },
+      h('div', { class: 'result', style: 'margin:calc(var(--u)*1.4) 0' }, h('span', { class: 'k' }, 'Diagnosis'), QUIZ.shrine.options[0].t),
+      h('ul', { class: 'find' }, SCROLLS.map(([n, qs]) => { const st = scrollState(qs); return h('li', null, n + ' scroll: ' + (st === 2 ? 'gold, every answer right first time' : st === 1 ? 'complete' : 'not complete')); })),
+      h('p', { class: 'prompt-q' }, 'First-attempt reasoning: ' + right + ' of ' + all)),
+    h('div', { class: 'btns' }, refsRow(REFS.shrine), btn('Continue', nextStep, { primary: true })),
+  ]);
+}
+
+// --- ending ------------------------------------------------------------------
+let beat = null;
+function startEnding() {
+  S.phase = 'ending';
+  S.visited.healer = true;
+  const A = LAYOUT.actors;
+  const beats = [
+    { text: 'The healer sits with Mio and gives her the diagnosis: Huntington disease. Her care will focus on her symptoms and on support for her and her family.',
+      top: true, focus: A.mio, voice: 'healer', go: () => walkNpc('healer', A.mio[0] + 16, A.mio[1] + 2) },
+    { board: true },
+    { text: "Mio's father and her sister walk to the healer's hut for genetic counselling.",
+      focus: LAYOUT.points.hut, voice: 'father', go: () => { walkNpc('father', LAYOUT.points.hut[0] - 14, LAYOUT.points.hut[1] + 6); walkNpc('sister', LAYOUT.points.hut[0] + 2, LAYOUT.points.hut[1] + 14); walkNpc('healer', LAYOUT.points.hut[0] + 16, LAYOUT.points.hut[1] - 2); } },
+    { scroll: true },
+    { final: true },
+  ];
+  let i = -1;
+  const next = () => {
+    i++;
+    caption.classList.add('hidden');
+    if (i >= beats.length) { beat = null; closeModal(); S.phase = 'explore'; S.ended = true; S.camFocus = null; updateHUD(); return; }
+    const b = beats[i];
+    if (b.focus) S.camFocus = b.focus;
+    if (b.board) { showModal([...boardNodes(true), h('div', { class: 'btns' }, refsRow(REFS.board), btn('Continue', () => { modal.classList.add('hidden'); next(); }, { primary: true }))], true); return; }
+    if (b.scroll) { stepScroll(true, () => { modal.classList.add('hidden'); next(); }); return; }
+    if (b.final) { stepFinal(() => next()); return; }
+    modal.classList.add('hidden');
+    b.go();
+    if (b.voice) speak(b.voice);
+    const cont = btn('Continue', () => next(), { primary: true, disabled: true });
+    caption.replaceChildren(h('div', { class: 'kicker px' }, 'The village'), h('div', null, b.text), h('div', { class: 'btns', style: 'margin-top:calc(var(--u)*2)' }, cont));
+    caption.classList.toggle('top', !!b.top);
+    caption.classList.remove('hidden');
+    beat = { cont };
+  };
+  next();
+}
+function stepScroll(writing, after) {
+  const im = IMG.scroll;
+  const c = h('canvas', { width: im.width, height: im.height });
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(im, 0, 0);
+  showModal([
+    ...header('The scroll', writing ? 'The healer writes the diagnosis on the scroll' : 'The diagnosis on the scroll'),
+    h('div', { class: 'body' },
+      h('div', { class: 'scrollart' }, c, h('div', { class: 'result', style: 'flex:1;font-size:1.15em' }, h('span', { class: 'k' }, 'Diagnosis'), 'Huntington disease')),
+      h('p', { style: 'font-size:1.2em;font-weight:700;color:var(--pine);margin:calc(var(--u)*4) 0 0' }, 'The village is saved through accurate diagnosis, informed counselling, and recognition of inherited risk.')),
+    h('div', { class: 'btns' }, refsRow(REFS.scroll), btn('Continue', after || nextStep, { primary: true })),
+  ]);
+}
+function stepFinal(after) {
+  showModal([
+    h('div', { class: 'body', style: 'display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center' },
+      h('div', { class: 'title sh', style: 'font-size:calc(var(--u)*16)' }, 'Mission complete.'),
+      h('p', { style: 'font-size:1.45em;margin:calc(var(--u)*2) 0 0' }, 'Now solve the next cases without the ninja.')),
+    h('div', { class: 'btns' }, btn('Back to the village', after || nextStep, { primary: true })),
+  ], true);
+}
+function walkNpc(id, tx, ty) { const n = S.npc[id]; n.tx = tx; n.ty = ty; }
+
+// ---------------------------------------------------------------------------
+// World: interactables
+// ---------------------------------------------------------------------------
+function stops() {
+  const L = LAYOUT, list = [];
+  for (const id of ['father', 'mio', 'sister', 'grandmother', 'hana', 'ren', 'child']) {
+    const n = S.npc[id];
+    list.push({ id, kind: 'char', x: n.x, y: n.y, label: CHARS[id].name, hit: [n.x - 9, n.y - 18, 18, 20] });
+  }
+  const st = L.objects.stone;
+  list.push({ id: 'stone', kind: 'char', x: L.points.stone[0], y: L.points.stone[1], label: 'Memorial stone', hit: [st[0] - 9, st[1] - 18, 18, 20] });
+  const hn = S.npc.healer;
+  list.push({ id: 'hut', kind: 'hut', x: hn.x, y: hn.y, label: "Healer's hut", hit: L.hits.hut, hit2: [hn.x - 9, hn.y - 18, 18, 20] });
+  const bd = L.objects.board;
+  list.push({ id: 'board', kind: 'board', x: L.points.board[0], y: L.points.board[1], label: 'Noticeboard', hit: [bd[0] - 10, bd[1] - 18, 20, 22] });
+  L.gates.forEach((gx, i) => list.push({ id: 'gate' + i, kind: 'gate', idx: i, x: gx, y: L.gateY - 4, label: 'Gate ' + (i + 1), hit: [gx - 9, L.gateY - 18, 18, 20] }));
+  list.push({ id: 'shrine', kind: 'shrine', x: L.points.shrine[0], y: L.points.shrine[1], label: 'Diagnosis Shrine', hit: L.hits.shrine });
+  return list;
+}
+function nearestStop() {
+  let best = null, bd = 1e9;
+  for (const s of stops()) {
+    const d = Math.hypot(s.x - S.av.x, s.y - S.av.y);
+    if (d <= RADIUS && d < bd) { bd = d; best = s; }
+  }
+  return best;
+}
+function interact(s) {
+  if (!s || S.phase !== 'explore') return;
+  S.walk = null; S.pending = null; clearKeys();
+  if (s.kind === 'char') { speak(s.id); visitCharacter(s.id); }
+  else if (s.kind === 'hut') { speak('healer'); visitHut(); }
+  else if (s.kind === 'board') visitBoard();
+  else if (s.kind === 'gate') visitGate(s.idx);
+  else if (s.kind === 'shrine') visitShrine();
+}
+function stopDone(id) {
+  if (id.startsWith('gate')) return S.gates[+id.slice(4)];
+  if (id === 'shrine') return S.shrineSolved;
+  if (STOP_QUIZZES[id]) return STOP_QUIZZES[id].every((q) => S.quizDone[q]);
+  return !!S.done[id];
+}
+function nextMain() { return MAIN_PATH.find((id) => !stopDone(id)) || null; }
+
+// ---------------------------------------------------------------------------
+// HUD and labels
+// ---------------------------------------------------------------------------
+function updateHUD() {
+  const hud = $('hud');
+  hud.classList.toggle('hidden', S.phase === 'title');
+  [...document.querySelectorAll('#seals .seal')].forEach((e, i) => e.classList.toggle('full', i < S.seals));
+  [...document.querySelectorAll('#scrolls .scr')].forEach((e, i) => { const st = scrollState(SCROLLS[i][1]); e.classList.toggle('full', st === 1); e.classList.toggle('gold', st === 2); });
+  const n = nextMain();
+  $('hintKicker').textContent = n ? 'Next' : 'Done';
+  const hint = $('hint'), text = HINTS[n || 'done'].replace(/^Next stop: (.)/, (m, c) => c.toUpperCase());
+  if (hint.textContent !== text) {
+    hint.textContent = text;
+    hint.classList.remove('swap');
+    void hint.offsetWidth;                // replay the slide-in for each new stop
+    hint.classList.add('swap');
+  }
+}
+const labelsEl = $('labels');
+const placeLabels = [];
+function buildLabels() {
+  labelsEl.replaceChildren();
+  placeLabels.length = 0;
+  const L = LAYOUT;
+  const add = (text, x, y, cls) => { const e = h('div', { class: 'wl px ' + (cls || '') }, text); e.dataset.x = x; e.dataset.y = y; labelsEl.append(e); placeLabels.push(e); return e; };
+  add("Healer's hut", L.labels.hut[0], L.labels.hut[1]);
+  add('Noticeboard', L.objects.board[0], L.objects.board[1] - 15);
+  add('Memorial stone', L.objects.stone[0], L.objects.stone[1] + 15);
+  L.gates.forEach((gx, i) => add(String(i + 1), gx, L.gateY - 17, 'gate'));
+  add('Diagnosis Shrine', L.labels.shrine[0], L.labels.shrine[1]);
+  promptEl = h('div', { class: 'wl px prompt hidden' });
+  labelsEl.append(promptEl);
+  timeEls = stops().map((s) => { const e = h('div', { class: 'wl time hidden' }); labelsEl.append(e); return e; });
+  positionLabels();
+}
+let promptEl = null, timeEls = [];
+function placeAt(e, x, y) {
+  const l = 'calc(var(--u)*' + Math.round(x * 2) / 2 + ')', t = 'calc(var(--u)*' + Math.round(y * 2) / 2 + ')';
+  if (e.style.left !== l) e.style.left = l;
+  if (e.style.top !== t) e.style.top = t;
+}
+function setText(e, s) { if (e.textContent !== s) e.textContent = s; }
+function positionLabels() {
+  const cx = Math.round(cam.x), cy = Math.round(cam.y);
+  for (const e of placeLabels) placeAt(e, +e.dataset.x - cx, +e.dataset.y - cy);
+  placeLabels[2].style.transform = 'translate(-50%,0)';
+}
+let showRadii = false;
+function updateLabels() {
+  const explore = S.phase === 'explore';
+  labelsEl.classList.toggle('hidden', S.phase === 'title');
+  positionLabels();
+  const cx = Math.round(cam.x), cy = Math.round(cam.y);
+  const s = explore ? nearestStop() : null;
+  if (s) {
+    setText(promptEl, s.label + ' · E');
+    const top = s.kind === 'shrine' ? LAYOUT.labels.shrine[1] - 2 : s.kind === 'hut' ? S.npc.healer.y - 20 : s.id === 'stone' ? LAYOUT.objects.stone[1] - 18 : s.kind === 'board' ? LAYOUT.objects.board[1] - 16 : s.kind === 'gate' ? LAYOUT.gateY - 18 : s.y - 19;
+    const x = s.kind === 'hut' ? S.npc.healer.x : s.kind === 'board' ? LAYOUT.objects.board[0] : s.x;
+    placeAt(promptEl, Math.max(30, Math.min(354, x - cx)), Math.max(30, top - cy));
+    promptEl.classList.remove('hidden');
+  } else promptEl.classList.add('hidden');
+  const list = stops();
+  timeEls.forEach((e, i) => {
+    const st = list[i];
+    if (!showRadii || !st) { e.classList.add('hidden'); return; }
+    const d = Math.hypot(st.x - LAYOUT.start[0], st.y - LAYOUT.start[1]);
+    setText(e, (d / SPEED).toFixed(1) + ' s');
+    placeAt(e, st.x - cx, st.y + 3 - cy);
+    e.classList.remove('hidden');
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------------------
+const music = { el: null, vol: 0.4, muted: false };
+function initMusic() {
+  if (!ASSETS.music) return;
+  const a = new Audio();
+  a.src = ASSETS.music; a.loop = true; a.preload = 'auto';
+  music.el = a;
+  $('music').classList.remove('hidden');
+  applyVolume();
+}
+function startMusic() { if (music.el && music.el.paused) music.el.play().catch(() => {}); }
+function applyVolume() {
+  if (!music.el) return;
+  const pct = Math.round(music.vol * 100), off = music.muted || pct === 0;
+  music.el.volume = off ? 0 : music.vol;
+  const b = $('musicBtn');
+  b.textContent = off ? 'Music off' : 'Music ' + pct + '%';
+  b.classList.toggle('off', off);
+  const v = $('vol');
+  v.value = pct;
+  v.style.setProperty('--p', (off ? 0 : pct) + '%');
+}
+function setVolume(v, announce) {
+  if (!music.el) return;
+  music.vol = Math.round(clamp(v, 0, 1) * 20) / 20; music.muted = false;
+  applyVolume(); startMusic();
+  if (announce) toast('Music volume ' + Math.round(music.vol * 100) + '%');
+}
+function toggleMute() {
+  if (!music.el) return;
+  music.muted = !music.muted;
+  if (!music.muted && music.vol === 0) music.vol = 0.4;
+  applyVolume();
+  if (!music.muted) startMusic();
+  toast(music.muted ? 'Music muted' : 'Music on');
+}
+const voices = { ctx: null, out: null, buf: {}, on: true, last: 0 };
+function initVoices() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC || !ASSETS.voices) return;
+  try { voices.ctx = new AC(); } catch (err) { return; }
+  voices.out = voices.ctx.createGain();
+  voices.out.gain.value = 0.55;
+  voices.out.connect(voices.ctx.destination);
+  for (const [name, src] of Object.entries(ASSETS.voices)) {
+    const bin = atob(src.slice(src.indexOf(',') + 1)), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    voices.ctx.decodeAudioData(bytes.buffer).then((b) => {
+      const d = b.getChannelData(0);
+      let peak = 0;
+      for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
+      voices.buf[name] = { b, norm: peak > 0 ? 0.9 / peak : 1 };
+    }).catch(() => {});
+  }
+  $('voiceBtn').classList.remove('hidden');
+  $('voiceSep').classList.remove('hidden');
+  applyVoices();
+}
+function unlockVoices() { if (voices.ctx && voices.ctx.state === 'suspended') voices.ctx.resume().catch(() => {}); }
+// Two soft notes when a stop on the main path is finished.
+function chime() {
+  if (!voices.on || !voices.ctx) return;
+  unlockVoices();
+  const t0 = voices.ctx.currentTime;
+  [660, 990].forEach((hz, i) => {
+    const o = voices.ctx.createOscillator(), g = voices.ctx.createGain();
+    o.type = 'sine'; o.frequency.value = hz;
+    const t = t0 + i * 0.14;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.09, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
+    o.connect(g); g.connect(voices.out);
+    o.start(t); o.stop(t + 0.55);
+  });
+}
+// A short babble: one clip, plus a second syllable for the very short clips.
+function speak(role) {
+  const r = ROLES[role];
+  if (!voices.on || !voices.ctx || !r || !r.voice) return;
+  const v = voices.buf[r.voice];
+  if (!v) return;
+  unlockVoices();
+  const now = voices.ctx.currentTime;
+  if (now - voices.last < 0.25) return;
+  voices.last = now;
+  const syllables = v.b.duration < 0.2 ? 2 : 1;
+  let t = now;
+  for (let i = 0; i < syllables; i++) {
+    const rate = r.pitch * (1 + (Math.random() - 0.5) * 0.08) * (i ? 1.07 : 1);
+    const s = voices.ctx.createBufferSource(), g = voices.ctx.createGain();
+    s.buffer = v.b; s.playbackRate.value = rate; g.gain.value = v.norm;
+    s.connect(g); g.connect(voices.out);
+    s.start(t);
+    t += v.b.duration / rate * 0.85;
+  }
+}
+function applyVoices() {
+  const b = $('voiceBtn');
+  b.textContent = voices.on ? 'Voices on' : 'Voices off';
+  b.classList.toggle('off', !voices.on);
+}
+function toggleVoices() {
+  if (!voices.ctx) return;
+  voices.on = !voices.on;
+  applyVoices();
+  toast(voices.on ? 'Character voices on' : 'Character voices off');
+}
+$('voiceBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleVoices(); });
+$('musicBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleMute(); });
+$('vol').addEventListener('input', (e) => setVolume(e.currentTarget.value / 100, false));
+$('vol').addEventListener('change', (e) => e.currentTarget.blur());
+
+const keys = {};
+const MOVE = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
+function clearKeys() { for (const k in keys) delete keys[k]; }
+function overlayOpen(id) { return !$(id).classList.contains('hidden'); }
+function toggleOverlay(id, on) { $(id).classList.toggle('hidden', on === undefined ? !$(id).classList.contains('hidden') : !on); clearKeys(); }
+function anyBlockingOverlay() { return overlayOpen('pause') || overlayOpen('help') || overlayOpen('credits') || overlayOpen('confirm'); }
+
+window.addEventListener('keydown', (e) => {
+  const code = e.code, key = e.key;
+  if (code === 'Space' || code === 'Enter' || code === 'NumpadEnter' || MOVE[code]) e.preventDefault();
+  if (key === 'p' || key === 'P') { if (!e.repeat) toggleOverlay('pause'); return; }
+  if (overlayOpen('pause')) { if (key === 'Escape') toggleOverlay('pause', false); return; }
+  if (overlayOpen('confirm')) {
+    if (key === 'Escape' || key === 'n' || key === 'N') toggleOverlay('confirm', false);
+    else if ((code === 'Enter' || key === 'y' || key === 'Y') && !e.repeat) restart();
+    return;
+  }
+  if (e.shiftKey && (key === 'R' || key === 'r')) { if (!e.repeat) toggleOverlay('confirm', true); return; }
+  if (e.shiftKey && (key === 'U' || key === 'u')) {
+    if (!e.repeat && S.phase !== 'title' && !S.shrineSolved) { S.shrineForced = true; toast('The Diagnosis Shrine is unlocked.'); updateHUD(); }
+    return;
+  }
+  if (code === 'KeyM') { if (!e.repeat) toggleMute(); return; }
+  if (code === 'KeyV') { if (!e.repeat) toggleVoices(); return; }
+  if (code === 'Minus' || code === 'NumpadSubtract') { setVolume(music.vol - 0.1, true); return; }
+  if (code === 'Equal' || code === 'NumpadAdd') { setVolume(music.vol + 0.1, true); return; }
+  if (key === 'h' || key === 'H') { if (!e.repeat) { toggleOverlay('credits', false); toggleOverlay('help'); } return; }
+  if (key === 'c' || key === 'C') { if (!e.repeat) { toggleOverlay('help', false); toggleOverlay('credits'); } return; }
+  if (key === 'Escape') {
+    if (e.repeat) return;
+    if (overlayOpen('help') || overlayOpen('credits')) { toggleOverlay('help', false); toggleOverlay('credits', false); return; }
+    if (S.phase === 'modal') { flow = null; closeModal(); return; }
+    if (S.phase === 'ending') { const b = modal.querySelector('[data-primary]'); if (b && b.textContent === 'Back to the village' && !b.disabled) b.click(); }
+    return;
+  }
+  if (overlayOpen('help') || overlayOpen('credits')) {
+    if ((code === 'Enter' || code === 'Space') && !e.repeat) { toggleOverlay('help', false); toggleOverlay('credits', false); }
+    return;
+  }
+  if (key === 'g' || key === 'G') { if (!e.repeat) showRadii = !showRadii; return; }
+  if (MOVE[code]) { if (S.phase === 'explore') { keys[code] = true; S.walk = null; S.pending = null; } return; }
+  if (code === 'KeyJ') { if (!e.repeat) jump(); return; }
+  const activate = code === 'Space' || code === 'Enter' || code === 'NumpadEnter' || code === 'KeyE';
+  if (!activate || e.repeat) return;
+  if (S.phase === 'explore') {
+    if (code === 'KeyE') { const s = nearestStop(); if (s) interact(s); }
+    else if (code === 'Space') jump();
+    return;
+  }
+  if (code === 'KeyE') return;
+  let scope = null;
+  if (S.phase === 'title') scope = $('title');
+  else if (!caption.classList.contains('hidden')) scope = caption;
+  else if (!modal.classList.contains('hidden')) scope = modal;
+  if (scope) { const b = scope.querySelector('[data-primary]'); if (b && !b.disabled) b.click(); }
+});
+window.addEventListener('keyup', (e) => { delete keys[e.code]; });
+window.addEventListener('blur', () => { clearKeys(); if (S) { S.walk = null; S.pending = null; } });
+document.addEventListener('visibilitychange', () => { clearKeys(); if (S) { S.walk = null; S.pending = null; } });
+
+function toLogical(ev) {
+  const r = cv.getBoundingClientRect();
+  return [(ev.clientX - r.left) * W / r.width, (ev.clientY - r.top) * H / r.height];
+}
+const inRect = (x, y, r) => r && x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3];
+cv.addEventListener('mousedown', (ev) => {
+  if (S.phase !== 'explore' || anyBlockingOverlay() || ev.button !== 0) return;
+  ev.preventDefault();
+  const [sx, sy] = toLogical(ev);
+  if (sy < 15) return;
+  const x = sx + Math.round(cam.x), y = sy + Math.round(cam.y);
+  const hits = stops().filter((s) => inRect(x, y, s.hit) || inRect(x, y, s.hit2));
+  hits.sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y));
+  const s = hits[0];
+  if (s) {
+    if (Math.hypot(s.x - S.av.x, s.y - S.av.y) <= RADIUS) { interact(s); return; }
+    S.walk = { x: s.x, y: s.y }; S.pending = s.id;
+  } else {
+    S.walk = { x, y }; S.pending = null;
+  }
+});
+
+$('beginBtn').addEventListener('click', () => {
+  if (S.phase !== 'title') return;
+  const t = $('title');
+  t.classList.add('leaving');
+  setTimeout(() => { if (t.classList.contains('leaving')) t.classList.add('hidden'); }, 500);
+  S.phase = 'explore'; updateHUD();
+  startMusic(); unlockVoices();
+});
+$('helpBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleOverlay('credits', false); toggleOverlay('help'); });
+$('creditsBtn').addEventListener('click', (e) => { e.currentTarget.blur(); toggleOverlay('help', false); toggleOverlay('credits'); });
+document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { toggleOverlay('help', false); toggleOverlay('credits', false); }));
+$('cancelRestart').addEventListener('click', () => toggleOverlay('confirm', false));
+$('doRestart').addEventListener('click', () => restart());
+
+function restart() {
+  toggleOverlay('confirm', false);
+  flow = null; beat = null;
+  modal.classList.add('hidden'); caption.classList.add('hidden');
+  S = freshState();
+  snapCamera();
+  $('title').classList.remove('hidden', 'leaving');
+  showRadii = false;
+  updateHUD();
+}
+
+// ---------------------------------------------------------------------------
+// Update and render
+// ---------------------------------------------------------------------------
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+// Solid obstacles: a 2px-cell bitmask baked from the scenery sprites at build
+// time. Trees block at the trunk and houses at the walls, so walking behind a
+// roof or a canopy still works.
+const SOLID = (() => {
+  const s = LAYOUT.solid, bin = atob(s.bits), bits = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bits[i] = bin.charCodeAt(i);
+  return { cell: s.cell, w: s.w, h: s.h, bits };
+})();
+function solidCell(cx, cy) {
+  if (cx < 0 || cy < 0 || cx >= SOLID.w || cy >= SOLID.h) return false;
+  const i = cy * SOLID.w + cx;
+  return (SOLID.bits[i >> 3] >> (i & 7)) & 1;
+}
+// Feet footprint, matched by the build-time reachability check.
+function blocked(x, y) {
+  for (let dx = -3; dx <= 3; dx += 3) {
+    for (let dy = -3; dy <= 0; dy += 3) {
+      if (solidCell(Math.floor((x + dx) / SOLID.cell), Math.floor((y + dy) / SOLID.cell))) return true;
+    }
+  }
+  return false;
+}
+function dirFrom(dx, dy, cur) { if (Math.abs(dx) > Math.abs(dy)) return dx < 0 ? 2 : 3; if (dy !== 0) return dy < 0 ? 1 : 0; return cur; }
+function update(dt) {
+  const paused = anyBlockingOverlay();
+  const av = S.av;
+  av.moving = false;
+  if (S.phase === 'explore' && !paused) {
+    let dx = 0, dy = 0;
+    for (const k in keys) if (MOVE[k]) { dx += MOVE[k][0]; dy += MOVE[k][1]; }
+    if (dx || dy) {
+      const l = Math.hypot(dx, dy); dx /= l; dy /= l;
+    } else if (S.walk) {
+      const wx = S.walk.x - av.x, wy = S.walk.y - av.y, d = Math.hypot(wx, wy);
+      const stopAt = S.pending ? RADIUS - 6 : 0.5;
+      if (d <= stopAt || d < 0.5) {
+        const p = S.pending; S.walk = null; S.pending = null;
+        if (p) { const s = stops().find((q) => q.id === p); if (s && Math.hypot(s.x - av.x, s.y - av.y) <= RADIUS) interact(s); }
+      } else { dx = wx / d; dy = wy / d; }
+    }
+    if (dx || dy) {
+      const step = SPEED * dt;
+      let nx = av.x + dx * step, ny = av.y + dy * step;
+      if (S.walk && !S.pending && Math.hypot(S.walk.x - av.x, S.walk.y - av.y) < step) { nx = S.walk.x; ny = S.walk.y; }
+      const B = LAYOUT.bounds;
+      const tx = clamp(nx, B[0], B[2]), ty = clamp(ny, B[1], B[3]);
+      const ox = av.x, oy = av.y;
+      if (!blocked(tx, av.y)) av.x = tx;        // axis by axis, so walls are slid along
+      if (!blocked(av.x, ty)) av.y = ty;
+      const moved = av.x !== ox || av.y !== oy;
+      if (moved) { av.dir = dirFrom(dx, dy, av.dir); av.t += dt; av.moving = true; }
+      if (S.walk) {
+        S.stuck = moved ? 0 : (S.stuck || 0) + dt;
+        if (S.stuck > 0.3) { S.walk = null; S.pending = null; S.stuck = 0; }
+      }
+    }
+    // noticeboard opens when the avatar walks up to it
+    const bp = LAYOUT.points.board;
+    const inside = Math.hypot(bp[0] - av.x, bp[1] - av.y) <= RADIUS;
+    if (inside && !S.insideBoard && av.moving && (!S.pending || S.pending === 'board')) { S.insideBoard = true; S.walk = null; S.pending = null; visitBoard(); }
+    S.insideBoard = inside;
+  }
+  if (!paused) {
+    let walking = false;
+    for (const id in S.npc) {
+      const n = S.npc[id];
+      if (n.tx == null) continue;
+      const wx = n.tx - n.x, wy = n.ty - n.y, d = Math.hypot(wx, wy);
+      if (d < 0.6) { n.x = n.tx; n.y = n.ty; n.tx = n.ty = null; n.dir = 0; continue; }
+      const st = Math.min(d, NPC_SPEED * dt);
+      n.x += wx / d * st; n.y += wy / d * st; n.dir = dirFrom(wx, wy, n.dir); n.t += dt; walking = true;
+    }
+    if (beat && beat.cont && !walking) beat.cont.disabled = false;
+    if (av.jt >= 0) {
+      av.jt += dt;
+      const p = av.jt / JUMP_T;
+      if (p >= 1) { av.jt = -1; av.z = 0; S.dust.push({ x: av.x, y: av.y, t: 0 }); }
+      else av.z = 4 * JUMP_H * p * (1 - p);
+    }
+    for (const d of S.dust) d.t += dt;
+    S.dust = S.dust.filter((d) => d.t < 0.5);
+    // villagers stand still, but they breathe and glance about
+    for (const id in S.npc) {
+      const n = S.npc[id];
+      if (n.tx != null) continue;
+      n.idle = (n.idle || 0) + dt;
+      if (n.idle > (n.next || 4)) {
+        n.idle = 0; n.next = 3 + Math.random() * 5;
+        n.dir = [0, 0, 0, 2, 3][Math.floor(Math.random() * 5)];   // rarely turns their back
+      }
+    }
+  }
+  updateAmbience(dt);
+  const done = mainDone();
+  if (done > amb.done) chime();
+  amb.done = done;
+  updateCamera(dt);
+}
+function jump() {
+  if (S.phase !== 'explore' || anyBlockingOverlay() || S.av.jt >= 0) return;
+  S.av.jt = 0;
+}
+function cameraTarget() {
+  if (S.phase === 'title') return [Math.round((WW - W) / 2), Math.round((WH - H) / 2)];
+  const f = S.camFocus || [S.av.x, S.av.y - 8];
+  return [clamp(f[0] - W / 2, 0, WW - W), clamp(f[1] - H / 2, 0, WH - H)];
+}
+function updateCamera(dt) {
+  const [tx, ty] = cameraTarget();
+  const k = Math.min(1, dt * 7);
+  cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k;
+  if (Math.abs(tx - cam.x) < 0.05) cam.x = tx;
+  if (Math.abs(ty - cam.y) < 0.05) cam.y = ty;
+}
+function snapCamera() { [cam.x, cam.y] = cameraTarget(); }
+function drawActor(sheet, x, y, dir, t, moving, dark, z) {
+  const img = dark ? SIL[sheet] : IMG['sheet:' + sheet];
+  if (!img) return;
+  z = z || 0;
+  const rows = Math.max(1, Math.min(4, Math.floor(img.height / 16)));
+  const frame = moving ? Math.floor(t * 8) % rows : 0;
+  if (IMG.shadow) {
+    ctx.globalAlpha = 1 - 0.55 * z / JUMP_H;
+    ctx.drawImage(IMG.shadow, Math.round(x - 6), Math.round(y - 4));
+    ctx.globalAlpha = 1;
+  }
+  const air = z > 0.5 && !dark && IMG['jump:' + sheet];
+  if (air) ctx.drawImage(air, dir * 16, 0, 16, 16, Math.round(x - 8), Math.round(y - 16 - z), 16, 16);
+  else ctx.drawImage(img, dir * 16, frame * 16, 16, 16, Math.round(x - 8), Math.round(y - 16 - z), 16, 16);
+}
+let clock = 0;
+// ---------------------------------------------------------------------------
+// Ambience: drifting leaves, swaying daisies, pond ripples, banners, a stray
+// cat, mist and light shafts. All decorative, none of it blocks or scores.
+// ---------------------------------------------------------------------------
+const DAISIES = [[234, 96], [308, 108], [128, 134], [276, 140], [154, 170], [300, 178], [248, 186], [350, 224]];
+const RIPPLES = [[252, 266], [268, 278], [260, 258]];
+const CAT_PATH = [[204, 178], [274, 222], [218, 220], [128, 208]];
+const RAYS = [[16, 54], [296, 196]];
+const amb = { leaves: [], cat: { x: CAT_PATH[0][0], y: CAT_PATH[0][1], i: 1, wait: 0, flip: 1, t: 0 }, done: 0, lit: 0 };
+function spawnLeaf(top) {
+  return {
+    x: Math.random() * WW, y: top ? -8 - Math.random() * 40 : Math.random() * WH,
+    vx: 5 + Math.random() * 9, vy: 7 + Math.random() * 11,
+    ph: Math.random() * 7, pink: Math.random() < 0.4,
+  };
+}
+function initAmbience() { for (let i = 0; i < 12; i++) amb.leaves.push(spawnLeaf(false)); }
+function mainDone() { let n = 0; for (const id of MAIN_PATH) if (stopDone(id)) n++; return n; }
+function updateAmbience(dt) {
+  for (const l of amb.leaves) {
+    l.x += (l.vx + Math.sin(clock * 1.3 + l.ph) * 6) * dt;
+    l.y += l.vy * dt;
+    if (l.y > WH + 10 || l.x > WW + 10) Object.assign(l, spawnLeaf(true));
+  }
+  const c = amb.cat;
+  if (c.wait > 0) { c.wait -= dt; c.t = 0; } else {
+    const [tx, ty] = CAT_PATH[c.i];
+    const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy);
+    if (d < 1.2) { c.i = (c.i + 1) % CAT_PATH.length; c.wait = 1.4 + Math.random() * 2.6; }
+    else {
+      const st = Math.min(d, 17 * dt);
+      c.x += dx / d * st; c.y += dy / d * st; c.t += dt;
+      if (Math.abs(dx) > 0.4) c.flip = dx < 0 ? -1 : 1;
+    }
+  }
+  // the village clears as the investigation progresses
+  const target = mainDone() / MAIN_PATH.length;
+  amb.lit += (target - amb.lit) * Math.min(1, dt * 1.6);
+}
+function drawFlat() {
+  if (IMG.ripple) {
+    ctx.globalAlpha = 0.75;
+    RIPPLES.forEach(([x, y], i) => {
+      const f = Math.floor(clock * 2.4 + i * 1.7) % 4;
+      ctx.drawImage(IMG.ripple, f * 16, 0, 16, 16, x - 8, y - 8, 16, 16);
+    });
+    ctx.globalAlpha = 1;
+  }
+  if (IMG.daisy) {
+    DAISIES.forEach(([x, y], i) => {
+      const f = Math.floor(clock * 3 + i * 1.3) % 4;
+      ctx.drawImage(IMG.daisy, f * 16, 0, 16, 16, x - 8, y - 16, 16, 16);
+    });
+  }
+}
+function drawCat() {
+  if (!IMG.cat) return;
+  const c = amb.cat, f = c.wait > 0 ? 0 : Math.floor(c.t * 5) % 2;
+  ctx.save();
+  ctx.translate(Math.round(c.x), Math.round(c.y));
+  ctx.scale(c.flip, 1);
+  ctx.drawImage(IMG.cat, f * 16, 0, 16, 16, -8, -16, 16, 16);
+  ctx.restore();
+}
+function drawTiled(img, ox, oy, alpha) {
+  if (!img || !img.width) return;
+  const cx = Math.round(cam.x), cy = Math.round(cam.y);
+  const iw = img.width, ih = img.height;
+  ctx.globalAlpha = alpha;
+  for (let x = Math.floor((cx - ox) / iw) * iw + ox; x < cx + W; x += iw) {
+    for (let y = Math.floor((cy - oy) / ih) * ih + oy; y < cy + H; y += ih) {
+      ctx.drawImage(img, Math.round(x), Math.round(y));
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function drawAmbienceOver() {
+  if (IMG.leaf && IMG.petal) {
+    for (const l of amb.leaves) {
+      const f = Math.floor(clock * 7 + l.ph * 3) % 6;
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(l.pink ? IMG.petal : IMG.leaf, f * 12, 0, 12, 7, Math.round(l.x), Math.round(l.y), 12, 7);
+    }
+    ctx.globalAlpha = 1;
+  }
+  drawTiled(IMG.mist, -Math.round(clock * 2.5), 0, 0.05);
+  if (IMG.ray) {
+    ctx.globalAlpha = 0.055 + 0.015 * Math.sin(clock * 0.5);
+    for (const [x, y] of RAYS) ctx.drawImage(IMG.ray, x, y);
+    ctx.globalAlpha = 1;
+  }
+  const gloom = 0.17 * (1 - amb.lit);
+  if (gloom > 0.004) {
+    ctx.fillStyle = 'rgba(23,48,38,' + gloom.toFixed(3) + ')';
+    ctx.fillRect(Math.round(cam.x), Math.round(cam.y), W, H);
+  }
+}
+// A '?' over someone still to visit, a tick over someone done. The current next
+// stop is left alone, since the sparkle already marks it.
+function drawBubbles() {
+  if (S.phase === 'title' || S.ended || !IMG.ask || !IMG.tick) return;
+  const nx = nextMain();
+  const marks = [['father', 22], ['mio', 22], ['sister', 22], ['grandmother', 22], ['hana', 22], ['ren', 22], ['child', 22], ['hut', 24], ['stone', 20]];
+  for (const [id, lift] of marks) {
+    if (id === nx) continue;
+    let x, y;
+    if (id === 'hut') { x = S.npc.healer.x; y = S.npc.healer.y; }
+    else if (id === 'stone') { x = LAYOUT.objects.stone[0]; y = LAYOUT.objects.stone[1]; }
+    else { const n = S.npc[id]; x = n.x; y = n.y; }
+    const done = stopDone(id);
+    // ticks stay faintly visible as a map of what is finished; the question
+    // marks only fade in as the class walks up to someone, to keep it calm
+    let alpha = 0.6;
+    if (!done) {
+      const d = Math.hypot(x - S.av.x, y - S.av.y);
+      alpha = 0.95 * clamp((120 - d) / 40, 0, 1);
+      if (alpha < 0.03) continue;
+    }
+    const img = done ? IMG.tick : IMG.ask;
+    const bob = Math.round(Math.sin(clock * 2 + x * 0.1) * 1.2);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(img, Math.round(x - 7), Math.round(y - lift - 13 + bob));
+    ctx.globalAlpha = 1;
+  }
+}
+
+function render() {
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+  ctx.drawImage(IMG.bg, 0, 0);
+  drawFlat();
+  const L = LAYOUT;
+  const open = shrineOpen();
+  // amber glows (reveals only: open gates and an openable shrine)
+  const glow = (x, y, r, a) => {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(192,138,62,' + a + ')'); g.addColorStop(1, 'rgba(192,138,62,0)');
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  };
+  if (open && !S.shrineSolved) glow(L.objects.shrine[0], L.objects.shrine[1] - 14, 40, 0.75 + 0.2 * Math.sin(clock * 2.4));
+  if (S.shrineSolved) glow(L.objects.shrine[0], L.objects.shrine[1] - 14, 34, 0.6);
+  L.gates.forEach((gx, i) => { if (S.gates[i]) glow(gx, L.gateY - 7, 18, 0.85); });
+
+  const items = [];
+  const so = L.objects;
+  items.push({ y: so.board[1], draw: () => ctx.drawImage(IMG.board, so.board[0] - (IMG.board.width >> 1), so.board[1] - IMG.board.height) });
+  items.push({ y: so.stone[1], draw: () => ctx.drawImage(IMG.memorial, so.stone[0] - (IMG.memorial.width >> 1), so.stone[1] - IMG.memorial.height) });
+  items.push({ y: so.shrine[1], draw: () => {
+    ctx.drawImage(IMG.shrine, so.shrine[0] - (IMG.shrine.width >> 1), so.shrine[1] - IMG.shrine.height);
+    ctx.drawImage(IMG.scroll, so.shrine[0] - 7, so.shrine[1] - 11);
+  } });
+  L.gates.forEach((gx, i) => items.push({ y: L.gateY, draw: () => ctx.drawImage(S.gates[i] ? IMG.doorLit : IMG.doorShut, gx - 8, L.gateY - 16) }));
+  for (const id in S.npc) {
+    const n = S.npc[id];
+    const seen = id === 'healer' ? S.visited.healer : S.visited[id];
+    const breath = n.tx == null && Math.sin(clock * 1.5 + n.x * 0.7) > 0.72 ? 1 : 0;
+    items.push({ y: n.y, draw: () => drawActor(sheetOf(id), n.x, n.y, n.dir, n.t, n.tx != null, !seen, breath) });
+  }
+  const av = S.av;
+  for (const d of S.dust) {
+    const f = Math.min(14, Math.floor(d.t / 0.5 * 15));
+    items.push({ y: d.y - 0.5, draw: () => ctx.drawImage(IMG.dust, f * 16, 0, 16, 14, Math.round(d.x - 8), Math.round(d.y - 10), 16, 14) });
+  }
+  items.push({ y: av.y + 0.1, draw: () => drawActor(sheetOf('avatar'), av.x, av.y, av.dir, av.t, av.moving, false, av.z) });
+  items.push({ y: amb.cat.y, draw: drawCat });
+  items.sort((a, b) => a.y - b.y).forEach((it) => it.draw());
+  ctx.drawImage(IMG.fg, 0, 0);
+  drawAmbienceOver();
+
+  if (open && !S.shrineSolved) {
+    ctx.fillStyle = '#C08A3E';
+    for (let k = 0; k < 6; k++) {
+      const ph = (clock * 0.45 + k / 6) % 1;
+      const mx = so.shrine[0] - 14 + ((k * 11) % 28) + Math.round(Math.sin(clock * 2 + k) * 1.5);
+      const my = so.shrine[1] - 6 - ph * 34;
+      ctx.globalAlpha = 1 - ph;
+      ctx.fillRect(Math.round(mx), Math.round(my), k % 2 ? 1 : 2, k % 2 ? 1 : 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // next-stop sparkle (pale, not amber)
+  if (S.phase !== 'title' && !S.ended) {
+    const n = nextMain();
+    const near = S.phase === 'explore' ? nearestStop() : null;
+    let p = null;
+    if (n && !(near && near.id === (n.startsWith('gate') ? 'gate' + n.slice(4) : n))) {
+      if (n === 'shrine') p = [so.shrine[0], so.shrine[1] - 34];
+      else if (n === 'stone') p = [so.stone[0], so.stone[1] - 22];
+      else if (n === 'board') p = [so.board[0], so.board[1] - 24];
+      else if (n === 'hut') p = [S.npc.healer.x, S.npc.healer.y - 24];
+      else if (n.startsWith('gate')) p = [L.gates[+n.slice(4)], L.gateY - 26];
+      else p = [S.npc[n].x, S.npc[n].y - 24];
+    }
+    if (p) {
+      const f = Math.floor(clock * 9) % 7;
+      const bob = Math.round(Math.sin(clock * 3) * 1.5);
+      ctx.drawImage(IMG.spark, f * 10, 0, 10, 8, Math.round(p[0] - 5), Math.round(p[1] - 4 + bob), 10, 8);
+    }
+  }
+  drawBubbles();
+  if (showRadii) {
+    ctx.save();
+    ctx.lineWidth = 1;
+    for (const s of stops()) {
+      ctx.strokeStyle = 'rgba(247,245,240,.9)';
+      ctx.beginPath(); ctx.arc(s.x, s.y, RADIUS, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#F7F5F0'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 2, 2);
+    }
+    ctx.strokeStyle = '#1A1A1A';
+    ctx.beginPath(); ctx.arc(L.start[0], L.start[1], 4, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+let last = 0;
+function frame(t) {
+  const dt = Math.min(0.05, (t - (last || t)) / 1000);
+  last = t; clock += dt;
+  update(dt);
+  render();
+  updateLabels();
+  requestAnimationFrame(frame);
+}
+
+// ---------------------------------------------------------------------------
+// Scaling: integer scale when it fills most of the window, letterboxed in pine
+// ---------------------------------------------------------------------------
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const aw = window.innerWidth * dpr, ah = window.innerHeight * dpr;
+  let s = Math.min(aw / W, ah / H);
+  const si = Math.floor(s);
+  if (si >= 1 && si / s >= 0.85) s = si;
+  const cw = W * s / dpr, ch = H * s / dpr;
+  stage.style.width = cw + 'px'; stage.style.height = ch + 'px';
+  stage.style.left = Math.round((window.innerWidth - cw) / 2) + 'px';
+  stage.style.top = Math.round((window.innerHeight - ch) / 2) + 'px';
+  stage.style.setProperty('--u', (s / dpr) + 'px');
+}
+window.addEventListener('resize', resize);
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+S = freshState();
+initAmbience();
+snapCamera();
+resize();
+initMusic();
+initVoices();
+$('srcList').replaceChildren(...Object.values(SRC).map((r) => h('li', null,
+  h('a', { href: r.url, target: '_blank', rel: 'noopener noreferrer', tabindex: '-1', onclick: (e) => e.currentTarget.blur() }, r.cite))));
+loadImages(() => {
+  for (const n of Object.keys(ASSETS.chars)) SIL[n] = silhouette(IMG['sheet:' + n]);
+  SIL.memorial = silhouette(IMG.memorial);
+  for (const [role, r] of Object.entries(ROLES)) {
+    if (!ASSETS.chars[r.sprite] || !ASSETS.chars[r.portrait]) console.warn('ROLES.' + role + ' uses a sprite that is not embedded. Embedded: ' + Object.keys(ASSETS.chars).join(', '));
+  }
+  console.info('Embedded character sprites (usable in ROLES): ' + Object.keys(ASSETS.chars).join(', '));
+  quizAudit();
+  $('crest').src = faceSrc('avatar');
+  for (let i = 0; i < 14; i++) {
+    const p = h('i');
+    p.style.left = (6 + ((i * 37) % 100)) + '%';
+    p.style.animationDuration = (11 + (i * 7) % 9) + 's';
+    p.style.animationDelay = (-(i * 2.3) % 14) + 's';
+    p.style.opacity = (0.55 + (i % 4) * 0.1).toFixed(2);
+    $('petals').append(p);
+  }
+  buildLabels();
+  updateHUD();
+  requestAnimationFrame(frame);
+});
+</script>
+</body>
+</html>
