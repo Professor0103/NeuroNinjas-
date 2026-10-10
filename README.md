@@ -1,6 +1,5 @@
 # NeuroNinjas-
-Custom built game on trinucleotide repeat expansions for Y4 teaching project 
-Play it directly at https://professor0103.github.io/NeuroNinjas-/
+Custom built game on trinucleotide repeat expansions for Y4 teaching project. Play it directly at https://professor0103.github.io/NeuroNinjas-/
 
 ## About 
 
